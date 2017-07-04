@@ -1,0 +1,5 @@
+# files extensions to keep out
+*.exe
+# dir to keep out
+.ssh/
+
