@@ -1,59 +1,67 @@
-LEIAME
+# Nota Fiscal de Serviço de Comunicação, modelo 21.
 
-Esse script deve ser usado unica e exclusivamente para gerar Nota Fiscal de Serviço de Comunicação, 
+Essa classe deve ser usada unica e exclusivamente para gerar Nota Fiscal de Serviço de Comunicação,
 modelo 21, para empresas prestadoras de serviços de internet, tais como provedores de internet.
-Com um pouco de adaptação o script pode ser usado tambem para empresas do setor de fornecimento de 
-energia.
-O objetivo de disponibilizar esse script como código aberto para a comunidade, foi ajudar as pequenas 
-empresas do setor de comunicação (prestadoras de serviços de internet) a se enquadrarem no novo 
-modelo de emissão de nota fiscal exijido pelo governo brasileiro.
+Com um pouco de adaptação a classe pode ser usada tambem para empresas do setor de fornecimento de
+energia elétrica.
+
+Com a intenção de ajudar as pequenas empresas do setor de comunicação (prestadoras de serviços de internet)
+a se enquadrarem no novo modelo de emissão de nota fiscal exijido pelo governo brasileiro, essa classe
+esta sendo disponibilizada como código aberto para a comunidade.
 
 
-AMBIENTE TESTADO
-    Servidor Web: Linux Debian x86_64_(Jessie) PHP version 5.5 nginx/1.1.19 
-    Nota: O script foi testado em diversas versões do PHP: 5.3, 5.4, 5.5. Em versões anteriores a 
-    5.3 precisa fazer alguns ajustes no script para funcionar corretamente.
+
+## AMBIENTE TESTADO
+**Servidor Web:** `Linux Debian x86_64_(Jessie) PHP version 5.5 nginx/1.1.19`
+
+**Nota:** O script foi testado em diversas versões do PHP: 5.3, 5.4, 5.5. Em versões anteriores a
+5.3 precisa fazer alguns ajustes no script para funcionar corretamente.
 
 
-INSTALAÇÃO
-    Existem duas maneiras de usar esse script, com ou sem banco de dados, se desejar gravar os dados 
-    dos arquivos no banco de dados, então será necessário criar as tabelas abaixo no banco de dados 
-    do contribuinte.
-    Veja que esse projeto não cobre instalação e uso de banco de dados, então presumo que o 
-    contribuinte já esta com o seu banco de dados instalado. 
-    Veja: BANCO DE DADOS - TABELAS.
+## INSTALAÇÃO
+Existem duas maneiras de usar esse script, com ou sem banco de dados, se desejar gravar os dados
+dos arquivos no banco de dados, então será necessário criar as tabelas abaixo no banco de dados
+do contribuinte.
+
+Veja que esse projeto não cobre instalação e uso de banco de dados, então presumo que o
+contribuinte já esta com o seu banco de dados instalado.
+Veja: **BANCO DE DADOS - TABELAS**.
 
 
-COMO USAR
-    Para executar o script, aponte o seu browser para o seguinte endereço:
-    <SERVER>:<PORT>/portal/classes/Fiscal/nfsc.21.query.php?di=2017-01-01&df=2017-01-31&nf=0&ri=1&da=1701&de=20170120
-    Onde os parametros passador na URL são:
-    di = data inicial                          (formato AAAA-MM-DD)
-    df = data final                            (formato AAAA-MM-DD)
-    nf = numeração inicial da NF               (obrigatoriamente precisa ser iniciado em ZERO(0))
-    ri = referência do item do registro fiscal (obrigatoriamente precisa ser iniciado em UM(1))
-    da = data da apuração                      (formato AAMM)
-    de = data da emissão                       (formato AAAAMMDD)
+## COMO USAR
+Para executar o script, aponte o seu browser para o seguinte endereço:
 
-    PERMISSÕES
-    Set o diretório raiz com as permissões:                  chmod -R 756 Fiscal/
-    Set o diretorio /001 com as seguintes permissoes:        chmod -R 756 001/
-    Set permissão para o grupo poder servir o arquivo:       chmod g+s Fiscal/
-    Set permissão para o grupo poder escrever o arquivo:     chmod g+w Fiscal/
-    
+`<SERVER>:<PORT>/portal/classes/Fiscal/nfsc.21.query.php?di=2017-01-01&df=2017-01-31&nf=0&ri=1&da=1701&de=20170120`
 
-BANCO DE DADOS - TABELAS
-    Executando o script abaixo, as seguintes tabelas serão criadas no banco de dados do contribuinte:
+Onde os parametros passados na URL são:
+* di = data inicial                          (formato AAAA-MM-DD)
+* df = data final                            (formato AAAA-MM-DD)
+* nf = numeração inicial da NF               (obrigatoriamente precisa ser iniciado em ZERO(0))
+* ri = referência do item do registro fiscal (obrigatoriamente precisa ser iniciado em UM(1))
+* da = data da apuração                      (formato AAMM)
+* de = data da emissão                       (formato AAAAMMDD)
 
-    - `tb_municipios_ibge` (Incluir no INSERT todas as cidades que a empresa possui clientes.)
-    - `Nfsc_21_Mestre`     (Arquivo tipo MESTRE DE DOCUMENTO FISCAL)
-    - `Nfsc_21_Item`       (Arquivo tipo ITEM DE DOCUMENTO FISCAL)
-    - `Nfsc_21_Cadastro`   (DADOS CADASTRAIS DO DESTINATÁRIO DO DOCUMENTO FISCAL)
+### PERMISSÕES
+* Set o diretório raiz com as permissões:                  chmod -R 756 Fiscal/
+* Set o diretorio /001 com as seguintes permissoes:        chmod -R 756 001/
+* Set permissão para o grupo poder servir o arquivo:       chmod g+s Fiscal/
+* Set permissão para o grupo poder escrever o arquivo:     chmod g+w Fiscal/
 
-    Rodar o script `script_db_update_0.1.sql` localizado no mesmo diretorio desse arquivo.
-    user@hostname:/$ mysql -u <username> -p  databasename  < /tmp/script_db_update_0.1.sql
 
-    - Informacoes adicionais sobre a estrutura de cada tabela da Nota Fiscal de Serviço de Comunicação, modelo 21.
+## BANCO DE DADOS - TABELAS
+Executando o script abaixo, as seguintes tabelas serão criadas no banco de dados do contribuinte:
+
+- `tb_municipios_ibge` (Incluir no INSERT todas as cidades que a empresa possui clientes.)
+- `Nfsc_21_Mestre`     (Arquivo tipo MESTRE DE DOCUMENTO FISCAL)
+- `Nfsc_21_Item`       (Arquivo tipo ITEM DE DOCUMENTO FISCAL)
+- `Nfsc_21_Cadastro`   (DADOS CADASTRAIS DO DESTINATÁRIO DO DOCUMENTO FISCAL)
+
+Rodar o script `script_db_update_0.1.sql` localizado no mesmo diretorio desse arquivo.
+
+`user@hostname:/$ mysql -u <username> -p  databasename  < /tmp/script_db_update_0.1.sql`
+
+### Informacoes adicionais sobre a estrutura de cada tabela da Nota Fiscal de Serviço de Comunicação, modelo 21.
+
 
     TABELA MESTRE
     +----+---------------------------------------------------------+------+--------+-----+---------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -182,9 +190,10 @@ BANCO DE DADOS - TABELAS
     |    | TOTAL                                                   | 287  |        |     |
     +----+---------------------------------------------------------+------+--------+-----+---------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+ */
 
+## TODO LIST
 
-
-LAST UPDATE
-    20170523 23:23
-    20170624 23:23
-    20170625 23:23
+- [x] passar dados via query SQL.
+- [x] passar dados via array PHP.
+- [ ] passar dados via JSON.
+- [ ] passar dados via XML.
+- [ ] permitir o cancelamento de uma nota fiscal.
