@@ -31,7 +31,11 @@ Veja: **BANCO DE DADOS - TABELAS**.
 ## COMO USAR
 Para executar o script, aponte o seu browser para o seguinte endereço:
 
+<<<<<<< HEAD
 `<SERVER>:<PORT>/portal/classes/Fiscal/nfsc.21.query.php?di=2017-01-01&df=2017-01-31&nf=0&ri=1&da=1701&de=20170120`
+=======
+`<SERVER>:<PORT>/NFSC21/nfsc.21.query.php?di=2017-01-01&df=2017-01-31&nf=0&ri=1&da=1701&de=20170120`
+>>>>>>> 91b22149f9eb0320dc40204e9386cdac86329220
 
 Onde os parametros passados na URL são:
 * di = data inicial                          (formato AAAA-MM-DD)
@@ -42,10 +46,17 @@ Onde os parametros passados na URL são:
 * de = data da emissão                       (formato AAAAMMDD)
 
 ### PERMISSÕES
+<<<<<<< HEAD
 * Set o diretório raiz com as permissões:                  chmod -R 756 Fiscal/
 * Set o diretorio /001 com as seguintes permissoes:        chmod -R 756 001/
 * Set permissão para o grupo poder servir o arquivo:       chmod g+s Fiscal/
 * Set permissão para o grupo poder escrever o arquivo:     chmod g+w Fiscal/
+=======
+* Set o diretório raiz com as permissões:                  chmod -R 756 NFSC21/
+* Set o diretorio /001 com as seguintes permissoes:        chmod -R 756 001/
+* Set permissão para o grupo poder servir o arquivo:       chmod g+s NFSC21/
+* Set permissão para o grupo poder escrever o arquivo:     chmod g+w NFSC21/
+>>>>>>> 91b22149f9eb0320dc40204e9386cdac86329220
 
 
 ## BANCO DE DADOS - TABELAS
