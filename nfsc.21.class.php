@@ -126,8 +126,12 @@
 * @Date: 2017-02-10
 * @Last Update: 2017-02-20, 2017-02-21, 2017-02-22, 2017-02-23, 2017-02-24, 2017-02-25
 *
-* @License
-* <copy license here>
+* @License:
+* GNU General Public License v3.0
+* Permissions of this strong copyleft license are conditioned on making available complete source
+* code of licensed works and modifications, which include larger works using a licensed work, under
+* the same license. Copyright and license notices must be preserved. Contributors provide an express
+* grant of patent rights.
 *
 */
 
@@ -406,7 +410,7 @@ class Nfsc_21
             else
                 $this->cliente_doc = $valueMESTRE['@ClientCNPJ'];
 
-    	    //$this->cliente_doc = "11.029.334/0001-04";
+    	    //$this->cliente_doc = "00.000.000/0001-00";
     		$this->cliente_doc = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_doc)));
     		//if (strlen($this->cliente_doc) < 11 or strlen($this->cliente_doc) > 14)
     		// tratamento: Em se tratando de pessoa não obrigada à inscrição no CNPJ ou CPF, preencher o campo com zeros.
@@ -1346,7 +1350,7 @@ class Nfsc_21
             else
                 $this->cliente_doc = $valueMESTRE['@ClientCNPJ'];
 
-    	    //$this->cliente_doc = "11.029.334/0001-04";
+    	    //$this->cliente_doc = "00.000.000/0001-00";
     		$this->cliente_doc = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_doc)));
     		//if (strlen($this->cliente_doc) < 11 or strlen($this->cliente_doc) > 14)
     		// tratamento: Em se tratando de pessoa não obrigada à inscrição no CNPJ ou CPF, preencher o campo com zeros.
