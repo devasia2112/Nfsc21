@@ -1618,43 +1618,4 @@ class Nfsc_21
 
 
 } // end class
-
-
-
-
-
-###################################################################################################
-/*
-include "../../config/config.php";
-$dados_empresa = $database->select("empresa", "*", array("id[=]" => 2)); // pegar sempre a empresa padrao e ativa(sempre existira 1 apenas nessa condicao).
-//print "<pre> empresa "; print_r($dados_empresa); print "</pre>";
-
-
-// object
-$nfsc = new Nfsc_21;
-print "<pre>"; print_r($nfsc); print "</pre>";
-
-echo $nfsc->ano_mes_ref_apuracao;
-// or
-echo $nfsc->getProperty();
-
-
-$nf_numero     = 0;
-$nf_ref_item   = 1;
-$data_inicio   = '';
-$data_fim      = '';
-$data_apuracao = 1701; //date("ym");   // formato "AAMM"
-$data_emissao  = 20170120; //date("Ymd");  // formato AAAAMMDD
-
-try
-{
-	echo $nfsc->Mestre($arrayMESTRE, $nf_numero, $nf_ref_item, $data_inicio, $data_fim, $data_apuracao, $data_emissao, $dados_empresa);
-	echo $nfsc->Item($nf_numero, $nf_ref_item, $data_inicio, $data_fim, $data_apuracao, $data_emissao, $dados_empresa);
-	echo $nfsc->Cadastro($nf_numero, $nf_ref_item, $data_inicio, $data_fim, $data_apuracao, $data_emissao, $dados_empresa, $database);
-}
-catch (Exception $e)
-{
-	echo "<pre><b>Caught exception:</b> ",  $e->getMessage(), "\n</pre>";
-}
-*/
-###################################################################################################
+?>
