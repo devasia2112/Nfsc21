@@ -10,6 +10,6 @@ $database = new medoo(array(
     'database_name' => 'portal',
     'server'        => 'localhost',
     'username'      => 'root',
-    'password'      => 'cyber2065',
+    'password'      => '',
     'charset'       => 'latin1'
 ));
