@@ -43,11 +43,6 @@ Onde os parametros passados na URL são:
 * de = data da emissão                       (formato AAAAMMDD)
 
 ### PERMISSÕES
-* Set o diretório raiz com as permissões:                  chmod -R 756 Fiscal/
-* Set o diretorio /001 com as seguintes permissoes:        chmod -R 756 001/
-* Set permissão para o grupo poder servir o arquivo:       chmod g+s Fiscal/
-* Set permissão para o grupo poder escrever o arquivo:     chmod g+w Fiscal/
-=======
 * Set o diretório raiz com as permissões:                  chmod -R 756 NFSC21/
 * Set o diretorio /001 com as seguintes permissoes:        chmod -R 756 001/
 * Set permissão para o grupo poder servir o arquivo:       chmod g+s NFSC21/
