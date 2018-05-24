@@ -43,9 +43,9 @@ Onde os parametros passados na URL são:
 * da = data da apuração                      (formato AAMM)
 * de = data da emissão                       (formato AAAAMMDD)
 
-**Nota de Uso:** O programada de validação pede um arquivo com a extensao .INI, vai ser necessario 
-cadastrar esses dados inicialmente e entao o programa da nota fiscal deve gerar esse arquivo 
-.INI (guarde ele para proximo uso), no cadastro preencha as informacoes que o programa pede com 
+**Nota de Uso:** O programa de validação pede um arquivo com a extensao .INI, vai ser necessário 
+cadastrar esses dados inicialmente e então o programa da nota fiscal deve gerar esse arquivo 
+.INI (guarde ele para próximo uso), no cadastro preencha as informações que o programa pede com 
 os mesmos dados de empresa que estiver registrado aqui 
 -> https://github.com/deepcell/Nfsc21/blob/master/nfsc.21.array.php (A partir da linha 38: coloque 
 os dados da sua empresa nesse script e repita no cadastro do programa).
