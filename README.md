@@ -29,6 +29,7 @@ Veja: **BANCO DE DADOS - TABELAS**.
 
 
 ## COMO USAR
+
 Para executar o script, aponte o seu browser para o seguinte endereço:
 
 `<SERVER>:<PORT>/NFSC21/nfsc.21.query.php?di=2017-01-01&df=2017-01-31&nf=0&ri=1&da=1701&de=20170120`
@@ -41,6 +42,14 @@ Onde os parametros passados na URL são:
 * ri = referência do item do registro fiscal (obrigatoriamente precisa ser iniciado em UM(1))
 * da = data da apuração                      (formato AAMM)
 * de = data da emissão                       (formato AAAAMMDD)
+
+**Nota de Uso:** O programada de validação pede um arquivo com a extensao .INI, vai ser necessario 
+cadastrar esses dados inicialmente e entao o programa da nota fiscal deve gerar esse arquivo 
+.INI (guarde ele para proximo uso), no cadastro preencha as informacoes que o programa pede com 
+os mesmos dados de empresa que estiver registrado aqui 
+-> https://github.com/deepcell/Nfsc21/blob/master/nfsc.21.array.php (A partir da linha 38: coloque 
+os dados da sua empresa nesse script e repita no cadastro do programa).
+
 
 ### PERMISSÕES
 * Set o diretório raiz com as permissões:                  chmod -R 756 NFSC21/
