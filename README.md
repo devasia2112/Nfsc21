@@ -34,6 +34,8 @@ Para executar o script, aponte o seu browser para o seguinte endereço:
 
 `<SERVER>:<PORT>/NFSC21/nfsc.21.query.php?di=2017-01-01&df=2017-01-31&nf=0&ri=1&da=1701&de=20170120`
 
+Exemplo sugerido para o script ```nfsc.21.query.php``` pode ser encontrado aqui >>>  https://gist.github.com/deepcell/bc96b8bb90e0c7eee0e7976a5f9b0528
+
 
 Onde os parametros passados na URL são:
 * di = data inicial                          (formato AAAA-MM-DD)
