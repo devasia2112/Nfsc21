@@ -16,11 +16,11 @@ class medoo
 	protected $database_type = 'mysql';
 
 	// For MySQL, MariaDB, MSSQL, Sybase, PostgreSQL, Oracle
-	protected $server = 'mysql.e-ephi.com.br';
+	protected $server = '';
 
-	protected $username = 'eephi01';
+	protected $username = '';
 
-	protected $password = 'e9u6w8';
+	protected $password = '';
 
 	// For SQLite
 	protected $database_file = '';
@@ -30,7 +30,7 @@ class medoo
 
 	protected $charset = 'utf8'; //utf8
 
-	protected $database_name = 'eephi01';
+	protected $database_name = '';
 
 	protected $option = array();
 
