@@ -6,10 +6,6 @@
  * 
  * Copyright 2014, Angel Lai
  * Released under the MIT license
- *
- *
- * IMPORTANTE: OS DADOS DE ACESSO AO BANCO RADIUS PRECISAM SER ESCRITOS AQUI NESSA CLASSE
- *   ATE ENCONTRAR UMA OUTRA SOLUCAO MELHOR
  */
 class medoo
 {
