@@ -1,4 +1,4 @@
-## Nota Fiscal de Serviço de Comunicação, modelo 21 e 22.
+## Nota Fiscal de Serviço de Comunicação e Telecomunicação, modelo 21 e 22.
 
 Essa classe deve ser usada unica e exclusivamente para gerar Nota Fiscal de Serviço de Comunicação,
 modelo 21, para empresas prestadoras de serviços de internet, tais como provedores de internet.
