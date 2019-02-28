@@ -428,7 +428,7 @@ class Nfsc_21
     * MESTRE DE DOCUMENTO FISCAL
     * Notas: Nova redação dada ao subitem 5.1 pelo Conv. ICMS 160/15, efeitos a partir de 01-01-2017.
     *******************************************************************************************************************/
-    public function Mestre($arrayMESTRE, $data1_1, $nf_numero, $nf_ref_item, $data_apuracao, $data_emissao, $dados_empresa, $modelo, $tipo_utilizacao)
+    public function Mestre($arrayMESTRE, $data1_1, $nf_numero, $nf_ref_item, $data_apuracao, $data_emissao, $dados_empresa, $modelo, $tipo_utilizacao, $database)
     {
         $temp_next_push     = '';                             # next push
         $tmp_next_push      = '';
@@ -856,25 +856,63 @@ class Nfsc_21
             );
 
 
-        } // end foreach here
+            # GRAVA DADOS DO ARQUIVO MESTRE 001 NO BANCO (tabela: `Nfsc_21_Mestre`) USANDO OS DADOS DO LAYOUT. (@update: 20190227)
+            /*
+            $dados = implode(',', array_map(function($x){return "'".$x."'";}, $r_mestre));
+            $campos = implode(',', array_keys($r_mestre));
+            $query = $this->exec('INSERT INTO "' . $table . '" (' . implode(', ', $columns) . ') VALUES (' . implode($values, ', ') . ')');
+            */
+            $setNfsDadosMestre[] = [
+                'id'=>NULL, 
+                'documento'=>$this->cliente_doc, 
+                'ie'=>$this->cliente_ie, 
+                'nome_cliente'=>$this->cliente_razao_social, 
+                'uf'=>$this->cliente_uf,
+                'classe_consumo'=>$this->cliente_classe_consumo, 
+                'tipo_utilizacao'=>$this->cliente_tipo_utilizacao, 
+                'grupo_tensao'=>$this->cliente_grupo_tensao, 
+                'codigo_cliente'=>$this->cliente_cod_assinante, 
+                'data_emissao'=>$this->nf_data_emissao, 
+                'modelo'=>$this->nf_modelo, 
+                'serie'=>$this->nf_serie, 
+                'numero'=>$this->nf_numero, 
+                'hash_autenticacao_nf'=>$this->nf_caddf, 
+                'valor_total'=>$this->nf_valor_total,
+                'bc_icms'=>$this->nf_bc_icms, 
+                'icms_destacado'=>$this->nf_icms_destacado,
+                'isentas_nao_tributadas'=>$this->nf_op_isenta, 
+                'situacao_documento'=>$this->situacao_documento, 
+                'ano_mes_apuracao'=>$this->nf_ano_mes_ref_apuracao, 
+                'ref_item_nf'=>$this->nf_referencia_item, 
+                'subclasse_consumo'=>$this->subclasse_consumo, 
+                'num_terminal_telefonico_principal'=>$this->numero_terminal_tel_principal, 
+                'tipo_dado_campo_2'=>0, # propriedade nao usada, necessario remover coluna na tabela `Nfsc_21_Mestre`
+                'outros_valores'=>$this->nf_outros_valores, 
+                'tipo_cliente'=>$this->tipo_cliente, 
+                'num_terminal_telefonico'=>$this->num_terminal_tel_unid_consumidora, 
+                'valor_total_fatura_comercial'=>$this->valor_total_fatura_comercial, 
+                'brancos_50'=>$this->brancos_50,
+                'numero_fatura_comercial'=>$this->numero_fatura_comercial, 
+                'data_leitura_anterior'=>$this->data_leitura_anterior, 
+                'data_leitura_atual'=>$this->data_leitura_atual, 
+                'info_adicional'=>$this->info_adicional, 
+                'brancos_5'=>$this->brancos_5, 
+                'cnpj_emitente'=>$this->cnpj_emitente, 
+                'hash_campos'=>$this->mestre_cod_autenticacao_digital_registro,
+                'brancos_8'=>$this->brancos_8,
+            ];
+
+	} // end foreach here
+
+        # GRAVA DADOS DO ARQUIVO MESTRE 001 NO BANCO (tabela: `Nfsc_21_Mestre`) USANDO OS DADOS DO LAYOUT. (@update: 20190227)
+        $setNfsMestre = $database->insert("Nfsc_21_Mestre", $setNfsDadosMestre);
 
 
-    	# layout display (remove it later)
-    	#print "<pre>layout "; print $this->layout_001; print "</pre>";
-
-		# GRAVA ARQUIVO MESTRE 001
-	    if (!file_put_contents('001/'.$this->file_001, $this->layout_001, LOCK_EX))
-	        throw new Exception('O arquivo <b>'.$this->file_001.'</b> n&atilde;o pode ser escrito!');
-	    else
-	    	return $response_mestre;
-
-
-        # GRAVA DADOS NO BANCO (@update: 20190212)
-        /*
-        $dados = implode(',', array_map(function($x){return "'".$x."'";}, $r_mestre));
-        $campos = implode(',', array_keys($r_mestre));
-        $query = "INSERT INTO `Nfsc_21_Mestre` ($campos) VALUES ($dados)";
-        */
+        # GRAVA ARQUIVO MESTRE 001
+        if (!file_put_contents('001/'.$this->file_001, $this->layout_001, LOCK_EX))
+            throw new Exception('O arquivo <b>'.$this->file_001.'</b> n&atilde;o pode ser escrito!');
+        else
+            return $response_mestre;
 
     }
 
@@ -897,7 +935,7 @@ class Nfsc_21
     * utilizados para a operação ou prestação principal. Os campos 16 a 25 deverão ser preenchidos com zeros
     * (vide item 11.10 Anexo I);
     *******************************************************************************************************************/
-    public function Item($response_mestre, $arrayITEM, $nf_numero, $nf_ref_item, $data_apuracao, $data_emissao, $dados_empresa, $modelo, $tipo_utilizacao)
+    public function Item($response_mestre, $arrayITEM, $nf_numero, $nf_ref_item, $data_apuracao, $data_emissao, $dados_empresa, $modelo, $tipo_utilizacao, $database)
     {
         $this->ii           = 0; // ii = index do item / Informar o número de ordem do item do documento fiscal - inicia em 001 sempre
     	$this->layout_001   = '';
@@ -1329,10 +1367,10 @@ class Nfsc_21
     	    ################## ################################################################ ################
 
 
-        	# filename { UF   CNPJ   Modelo   Serie   Ano   Mes   Status   Tipo   Volume(inicia em 001) }
+            # filename { UF   CNPJ   Modelo   Serie   Ano   Mes   Status   Tipo   Volume(inicia em 001) }
             // $this->file_001    = $dados_empresa['0']['estado'] . $cnpj . $this->nf_modelo . $this->nf_serie . date("ym") . 'N01I.001';
             $this->file_001    = $dados_empresa['0']['estado'] . $cnpj . $this->nf_modelo . $this->nf_serie . $data_apuracao . 'N01I.001';
-        	$this->layout_001 .= $this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo . $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item . $this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->quantidade_contratada . $this->quantidade_medida . $this->valor_total_item . $this->descontos_redutores . $this->acrescimos_despesas_acessorias . $this->bc_icms_item . $this->icms_item . $this->op_isentas_nao_tributadas . $this->outros_valores . $this->aliquota_icms . $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato . $this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep . $this->pis_pasep . $this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial . $this->tipo_isencao_reducao_bc . $this->brancos_5 . $this->item_cod_autenticacao_digital_registro . "\r" . "\n"; // acrescidos de CR/LF (Carriage Return/Line Feed) ao final de cada registro;
+            $this->layout_001 .= $this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo . $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item . $this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->quantidade_contratada . $this->quantidade_medida . $this->valor_total_item . $this->descontos_redutores . $this->acrescimos_despesas_acessorias . $this->bc_icms_item . $this->icms_item . $this->op_isentas_nao_tributadas . $this->outros_valores . $this->aliquota_icms . $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato . $this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep . $this->pis_pasep . $this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial . $this->tipo_isencao_reducao_bc . $this->brancos_5 . $this->item_cod_autenticacao_digital_registro . "\r" . "\n"; // acrescidos de CR/LF (Carriage Return/Line Feed) ao final de cada registro;
 
 
         } // end foreach here
@@ -1674,23 +1712,55 @@ class Nfsc_21
 
             ################## ################################################################ ################
 
-        	# filename { UF   CNPJ   Modelo   Serie   Ano   Mes   Status   Tipo   Volume(inicia em 001) }
+            # filename { UF   CNPJ   Modelo   Serie   Ano   Mes   Status   Tipo   Volume(inicia em 001) }
             // $this->file_001    = $dados_empresa['0']['estado'] . $cnpj . $this->nf_modelo . $this->nf_serie . date("ym") . 'N01D.001';
             $this->file_001    = $dados_empresa['0']['estado'] . $cnpj . $this->nf_modelo . $this->nf_serie . $data_apuracao . 'N01D.001';
-        	$this->layout_001 .= $this->cliente_doc . $this->cliente_ie . $this->cliente_razao_social . $this->cliente_end_logradouro . $this->cliente_end_numero . $this->cliente_end_complemento . $this->cliente_end_cep . $this->cliente_end_bairro . $this->cliente_end_nome_municipio_ibge . $this->cliente_uf . $this->cliente_tel_contato . $this->cliente_cod_assinante . $this->num_terminal_tel_unid_consumidora . $this->uf_terminal_tel_unid_consumidora . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->codigo_municipio_ibge . $this->brancos_5 . $this->cod_autenticacao_digital_registro . "\r\n"; // acrescidos de CR/LF (Carriage Return/Line Feed) ao final de cada registro;
+            $this->layout_001 .= $this->cliente_doc . $this->cliente_ie . $this->cliente_razao_social . $this->cliente_end_logradouro . $this->cliente_end_numero . $this->cliente_end_complemento . $this->cliente_end_cep . $this->cliente_end_bairro . $this->cliente_end_nome_municipio_ibge . $this->cliente_uf . $this->cliente_tel_contato . $this->cliente_cod_assinante . $this->num_terminal_tel_unid_consumidora . $this->uf_terminal_tel_unid_consumidora . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->codigo_municipio_ibge . $this->brancos_5 . $this->cod_autenticacao_digital_registro . "\r\n"; // acrescidos de CR/LF (Carriage Return/Line Feed) ao final de cada registro;
 
+
+            # GRAVA DADOS DO ARQUIVO CADASTRO 001 NO BANCO (tabela: `Nfsc_21_Cadastro`) USANDO OS DADOS DO LAYOUT.
+            /*
+            $this->exec('INSERT INTO "' . $table . '" (' . implode(', ', $columns) . ') VALUES (' . implode($values, ', ') . ')');
+            */
+            $setNfsDadosCadastro[] = [
+                'id'=>NULL, 
+                'documento'=>$this->cliente_doc, 
+                'ie'=>$this->cliente_ie, 
+                'nome_cliente'=>$this->cliente_razao_social, 
+                'logradouro'=>$this->cliente_end_logradouro, 
+                'numero'=>$this->cliente_end_numero, 
+                'complemento'=>$this->cliente_end_complemento, 
+                'cep'=>$this->cliente_end_cep, 
+                'bairro'=>$this->cliente_end_bairro, 
+                'municipio'=>$this->cliente_end_nome_municipio_ibge, 
+                'uf'=>$this->cliente_uf, 
+                'telefone'=>$this->cliente_tel_contato, 
+                'codigo_cliente'=>$this->cliente_cod_assinante, 
+                'terminal_telefonico'=>$this->num_terminal_tel_unid_consumidora, 
+                'uf_terminal_telefonico'=>$this->uf_terminal_tel_unid_consumidora, 
+                'data_emissao'=>$this->nf_data_emissao, 
+                'numero_nf'=>$this->nf_numero, 
+                'modelo'=>$this->nf_modelo, 
+                'codigo_municipio'=>$this->codigo_municipio_ibge, 
+                'brancos_5'=>$this->brancos_5, 
+                'hash_autenticacao_registro'=>$this->cod_autenticacao_digital_registro, 
+                'serie'=>$this->nf_serie, 
+            ];
 
         } // end foreach
+
+        # GRAVA DADOS DO ARQUIVO CADASTRO 001 NO BANCO (tabela: `Nfsc_21_Cadastro`) USANDO OS DADOS DO LAYOUT. (@update: 20190227)
+        $setNfsCadastro = $database->insert("Nfsc_21_Cadastro", $setNfsDadosCadastro);
 
 
     	# layout display (remove it later)
     	print "<pre>"; print $this->layout_001; print "</pre>";
 
-		# GRAVA ARQUIVO CADASTRO 001
-	    if (!file_put_contents('001/'.$this->file_001, $this->layout_001, LOCK_EX))
-	        throw new Exception('O arquivo <b>'.$this->file_001.'</b> n&atilde;o pode ser escrito!');
-	    else
-	    	return '<pre>O arquivo <b>`'.$this->file_001.'`</b> foi escrito com sucesso!</pre>';
+        # GRAVA ARQUIVO CADASTRO 001
+        if (!file_put_contents('001/'.$this->file_001, $this->layout_001, LOCK_EX))
+	    throw new Exception('O arquivo <b>'.$this->file_001.'</b> n&atilde;o pode ser escrito!');
+	else
+            return '<pre>O arquivo <b>`'.$this->file_001.'`</b> foi escrito com sucesso!</pre>';
 
     }
 
