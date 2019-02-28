@@ -1,4 +1,4 @@
-# Nota Fiscal de Serviço de Comunicação, modelo 21.
+## Nota Fiscal de Serviço de Comunicação, modelo 21 e 22.
 
 Essa classe deve ser usada unica e exclusivamente para gerar Nota Fiscal de Serviço de Comunicação,
 modelo 21, para empresas prestadoras de serviços de internet, tais como provedores de internet.
@@ -209,3 +209,6 @@ Rodar o script `script_db_update_0.1.sql` localizado no mesmo diretorio desse ar
 - [ ] passar dados via JSON.
 - [ ] passar dados via XML.
 - [ ] permitir o cancelamento de uma nota fiscal.
+
+
+:star2: Marque com uma estrela este repositório para acompanhar o seu desenvolvimento e torná-lo popular.
