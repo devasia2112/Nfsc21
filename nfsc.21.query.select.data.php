@@ -158,7 +158,7 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
 
     try
     {
-        $response_mestre = $nfsc->Mestre($arrayMESTRE, $data1_1, $nf_numero=0, $nf_ref_item, $data_apuracao, $data_emissao, $dados_empresa, $modelo, $tipo_utilizacao);
+        $response_mestre = $nfsc->Mestre($arrayMESTRE, $data1_1, $nf_numero=0, $nf_ref_item, $data_apuracao, $data_emissao, $dados_empresa, $modelo, $tipo_utilizacao, $database);
         echo $response_mestre['0']['msg']; // display return message
     }
     catch (Exception $e)
