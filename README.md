@@ -12,7 +12,9 @@ esta sendo disponibilizada como código aberto para a comunidade.
 
 
 ## AMBIENTE TESTADO
-**Servidor Web:** `Linux Debian x86_64_(Jessie) PHP version 5.5 nginx/1.1.19`
+**Servidor Web:**
+- Linux Debian x86_64_(Jessie) PHP version 5.5 - nginx/1.1.19 - MySQL 5.5
+- Linux 4.14.98-1-MANJARO - PHP 7.3.1 nginx/1.14.2 - mysql Ver 15.1 Distrib 10.3.12-MariaDB
 
 **Nota:** O script foi testado em diversas versões do PHP: 5.3, 5.4, 5.5. Em versões anteriores a
 5.3 precisa fazer alguns ajustes no script para funcionar corretamente.
@@ -20,7 +22,7 @@ esta sendo disponibilizada como código aberto para a comunidade.
 
 ## INSTALAÇÃO
 Existem duas maneiras de usar esse script, com ou sem banco de dados, se desejar gravar os dados
-dos arquivos no banco de dados, então será necessário criar as tabelas abaixo no banco de dados
+dos arquivos no banco de dados, então será necessário criar as tabelas abaixo no base de dados
 do contribuinte.
 
 Veja que esse projeto não cobre instalação e uso de banco de dados, então presumo que o
@@ -30,12 +32,10 @@ Veja: **BANCO DE DADOS - TABELAS**.
 
 ## COMO USAR
 
-Para executar o script, aponte o seu browser para o seguinte endereço:
+Para executar o script, aponte o seu browser para o seguinte endereço ou use o form disponivel:
 
-`<SERVER>:<PORT>/NFSC21/nfsc.21.query.php?di=2017-01-01&df=2017-01-31&nf=0&ri=1&da=1701&de=20170120`
-
-Exemplo sugerido para o script ```nfsc.21.query.php``` pode ser encontrado aqui >>>  https://gist.github.com/deepcell/bc96b8bb90e0c7eee0e7976a5f9b0528
-
+- URL para emissao de modelo 21 `<SERVER>:<PORT>/nfsc.21.query.select.data.php?di=2019-02-01&df=2019-02-07&nf=0&ri=1&da=1902&de=20190207&mo=21&tu=4&csv=0`
+- URL para emissao de modelo 22 `<SERVER>:<PORT>/nfsc.21.query.select.data.php?di=2019-02-01&df=2019-02-07&nf=0&ri=1&da=1902&de=20190207&mo=22&tu=1&csv=1`
 
 Onde os parametros passados na URL são:
 * di = data inicial                          (formato AAAA-MM-DD)
@@ -44,6 +44,9 @@ Onde os parametros passados na URL são:
 * ri = referência do item do registro fiscal (obrigatoriamente precisa ser iniciado em UM(1))
 * da = data da apuração                      (formato AAMM)
 * de = data da emissão                       (formato AAAAMMDD)
+* mo = modelo (21 ou 22) modelo 06 - Energia Eletrica ainda nao foi implementado.
+* tu = tipo utilizacao (mod. 21: internet(4) parametro opicional | mod. 22: telefonia(1), tv assinatura(3), outros(6) parametro requerido)
+* csv = exportar dados para arquivo CSV (0 = omitir, 1 = gerar).
 
 **Nota de Uso:** O programa de validação pede um arquivo com a extensao .INI, vai ser necessário 
 cadastrar esses dados inicialmente e então o programa da nota fiscal deve gerar esse arquivo 
