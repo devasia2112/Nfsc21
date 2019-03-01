@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS `Nfsc_21_Mestre` (
 
 
 --
--- @Date: 2017-06-24
+-- @Date: 2019-02-28
 -- @Title: Tabela 1 - Nfsc_21_Item
 -- @Description: CREATE TABLE `Nfsc_21_Item`
 --
@@ -88,47 +88,48 @@ CREATE TABLE IF NOT EXISTS `Nfsc_21_Mestre` (
 --
 -- @Observation: em caso de dúvida ler o conteudo do arquivo README.md localizado no mesmo diretorio desse script.
 --
-CREATE TABLE IF NOT EXISTS `Nfsc_21_Item` ( 
-    `id` int(19) NOT NULL, 
-    `documento` int(14) NOT NULL, 
-    `uf` varchar(2) COLLATE latin1_general_ci NOT NULL, 
-    `classe_consumo` int(1) NOT NULL, 
-    `tipo_utilizacao` int(1) NOT NULL, 
-    `grupo_tensao` int(2) NOT NULL, 
-    `data_emissao` int(8) NOT NULL, 
-    `modelo` int(2) NOT NULL, 
-    `serie` varchar(3) COLLATE latin1_general_ci NOT NULL, 
-    `numero` int(9) NOT NULL COMMENT 'numero da nf', 
-    `cfop` int(4) NOT NULL, 
-    `ordem_item` int(3) NOT NULL, 
-    `codigo_item` varchar(10) COLLATE latin1_general_ci NOT NULL, 
-    `descricao_item` varchar(40) COLLATE latin1_general_ci NOT NULL, 
-    `codigo_class_item` int(4) NOT NULL, 
-    `unidade` varchar(6) COLLATE latin1_general_ci NOT NULL, 
-    `quantidade_contratada` int(12) NOT NULL, 
-    `bc_icms` int(11) NOT NULL COMMENT 'base de calculo do icms', 
-    `total` int(11) NOT NULL, 
-    `acrescimos_despesas_acessorias` int(11) NOT NULL, 
-    `icms` int(11) NOT NULL, 
-    `quantidade_medida` int(12) NOT NULL, 
-    `aliquota_icms` int(4) NOT NULL, 
-    `ano_mes_ref_apuracao` varchar(4) COLLATE latin1_general_ci NOT NULL, 
-    `isentas_nao_tributadas` int(11) NOT NULL, 
-    `outros_valores` int(11) NOT NULL, 
-    `descontos` int(11) NOT NULL, 
-    `situacao` varchar(1) COLLATE latin1_general_ci NOT NULL, 
-    `quantidade_faturada` int(12) NOT NULL, 
-    `cofins` int(11) NOT NULL, 
-    `tarifa_aplicada` int(11) NOT NULL, 
-    `aliquota_cofins` int(6) NOT NULL, 
-    `pis_pasep` int(11) NOT NULL, 
-    `aliquota_pis_pasep` int(6) NOT NULL, 
-    `tipo_isencao` int(2) NOT NULL, 
-    `numero_contrato` varchar(15) COLLATE latin1_general_ci NOT NULL, 
-    `brancos_5` varchar(5) COLLATE latin1_general_ci NOT NULL, 
-    `desconto_judicial` varchar(1) COLLATE latin1_general_ci NOT NULL, 
-    `hash_registro` varchar(32) COLLATE latin1_general_ci NOT NULL COMMENT 'hash md5 de todos os campos exceto campo 1' 
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1 COMMENT='dados do arquivo Item NFSC'
+CREATE TABLE `Nfsc_21_Item` (
+  `id` int(19) NOT NULL AUTO_INCREMENT,
+  `documento` varchar(14) COLLATE latin1_general_ci NOT NULL,
+  `uf` varchar(2) COLLATE latin1_general_ci NOT NULL,
+  `classe_consumo` int(1) NOT NULL,
+  `tipo_utilizacao` int(1) NOT NULL,
+  `grupo_tensao` int(2) NOT NULL,
+  `data_emissao` int(8) NOT NULL,
+  `modelo` int(2) NOT NULL,
+  `serie` varchar(3) COLLATE latin1_general_ci NOT NULL,
+  `numero` int(9) NOT NULL COMMENT 'numero da nf',
+  `cfop` int(4) NOT NULL,
+  `ordem_item` int(3) NOT NULL,
+  `codigo_item` varchar(10) COLLATE latin1_general_ci NOT NULL,
+  `descricao_item` varchar(40) COLLATE latin1_general_ci NOT NULL,
+  `codigo_class_item` int(4) NOT NULL,
+  `unidade` varchar(6) COLLATE latin1_general_ci NOT NULL,
+  `quantidade_contratada` int(12) NOT NULL,
+  `bc_icms` int(11) NOT NULL COMMENT 'base de calculo do icms',
+  `total` int(11) NOT NULL,
+  `acrescimos_despesas_acessorias` int(11) NOT NULL,
+  `icms` int(11) NOT NULL,
+  `quantidade_medida` int(12) NOT NULL,
+  `aliquota_icms` int(4) NOT NULL,
+  `ano_mes_ref_apuracao` varchar(4) COLLATE latin1_general_ci NOT NULL,
+  `isentas_nao_tributadas` int(11) NOT NULL,
+  `outros_valores` int(11) NOT NULL,
+  `descontos` int(11) NOT NULL,
+  `situacao` varchar(1) COLLATE latin1_general_ci NOT NULL,
+  `quantidade_faturada` int(12) NOT NULL,
+  `cofins` int(11) NOT NULL,
+  `tarifa_aplicada` int(11) NOT NULL,
+  `aliquota_cofins` int(6) NOT NULL,
+  `pis_pasep` int(11) NOT NULL,
+  `aliquota_pis_pasep` int(6) NOT NULL,
+  `tipo_isencao` int(2) NOT NULL,
+  `numero_contrato` varchar(15) COLLATE latin1_general_ci NOT NULL,
+  `brancos_5` varchar(5) COLLATE latin1_general_ci NOT NULL,
+  `hash_registro` varchar(32) COLLATE latin1_general_ci NOT NULL COMMENT 'hash md5 de todos os campos exceto campo 1',
+  `desconto_judicial` varchar(1) COLLATE latin1_general_ci NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci COMMENT='dados do arquivo Item NFSC'
 
 
 
