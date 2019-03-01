@@ -943,9 +943,9 @@ class Nfsc_21
 
 
     	# tratar cnpj da empresa
-		$cnpj = str_replace('.', '', str_replace('/', '', str_replace('-', '', $dados_empresa['0']['cnpj'])));
-		if (strlen($cnpj) != 14)
-	        throw new Exception('O CNPJ da empresa precisa conter exatos 14 caracteres, corrija essa informação no cadastro de empresa do sistema. O arquivo n&atilde;o pode ser escrito!');
+        $cnpj = str_replace('.', '', str_replace('/', '', str_replace('-', '', $dados_empresa['0']['cnpj'])));
+        if (strlen($cnpj) != 14)
+            throw new Exception('O CNPJ da empresa precisa conter exatos 14 caracteres, corrija essa informação no cadastro de empresa do sistema. O arquivo n&atilde;o pode ser escrito!');
 
 
         # numero sequencial da NF
@@ -958,7 +958,7 @@ class Nfsc_21
         $count            = 0;
 
 
-	    ################## daqui para baixo precisa validar tudo dentro do LOOP da consulta ################
+        ################## daqui para baixo precisa validar tudo dentro do LOOP da consulta ################
 
         foreach($arrayITEM as $valueITEM)
         {
@@ -995,16 +995,16 @@ class Nfsc_21
                 //$this->outros_valores . $this->aliquota_icms .
 
                 #38 - X - Código de Autenticação Digital do registro MD5(campos 01 a 37) (32 posicoes)
-        	    $this->item_cod_autenticacao_digital_registro = md5(
-        	    	$this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo .
-        	    	$this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao .
-        	    	$this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item .
-        	    	$this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->campos_16_25 .
+                    $this->item_cod_autenticacao_digital_registro = md5(
+                    $this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo .
+                    $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao .
+                    $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item .
+                    $this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->campos_16_25 .
                     $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato .
                     $this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep .
                     $this->pis_pasep . $this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial .
                     $this->tipo_isencao_reducao_bc . $this->brancos_5
-        	    );
+                );
 
                 //                   01                   02                  03                              04                               05                            06                       07                 08                09                 10                 11                      12                13                 14                      15               16 ~ 25                26                          27                            28                       29                           30                       31                          32                 33                        34               35                                   36                               37                 38
                 $this->layout_001 .= $this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo . $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item . $this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->campos_16_25 . $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato . $this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep . $this->pis_pasep . $this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial . $this->tipo_isencao_reducao_bc . $this->brancos_5 . $this->item_cod_autenticacao_digital_registro . "\r" . "\n"; // acrescidos de CR/LF (Carriage Return/Line Feed) ao final de cada registro;
@@ -1015,7 +1015,7 @@ class Nfsc_21
 
 
 
-    		## Informações referentes aos dados cadastrais do tomador dos serviços de comunicação/telecomunicação.
+            ## Informações referentes aos dados cadastrais do tomador dos serviços de comunicação/telecomunicação.
     	    #01 - N - CNPJ ou CPF (14 posicoes)
             if (!empty($valueITEM['@ClientCPF']))
                 $this->cliente_doc = $valueITEM['@ClientCPF'];
@@ -1024,10 +1024,10 @@ class Nfsc_21
 
     	    //$this->cliente_doc = $valueITEM['@ClientCPF'] . $valueITEM['@ClientCNPJ']; //"001.001.001-01";
     	    //$this->cliente_doc = "01.001.001/0001-01";
-    		$this->cliente_doc = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_doc)));
-    		//if (strlen($this->cliente_doc) < 11 or strlen($this->cliente_doc) > 14)
-    		// tratamento: Em se tratando de pessoa não obrigada à inscrição no CNPJ ou CPF, preencher o campo com zeros.
-    		if (strlen($this->cliente_doc) < 1 or strlen($this->cliente_doc) == 11 or strlen($this->cliente_doc) == 14)
+            $this->cliente_doc = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_doc)));
+            //if (strlen($this->cliente_doc) < 11 or strlen($this->cliente_doc) > 14)
+            // tratamento: Em se tratando de pessoa não obrigada à inscrição no CNPJ ou CPF, preencher o campo com zeros.
+            if (strlen($this->cliente_doc) < 1 or strlen($this->cliente_doc) == 11 or strlen($this->cliente_doc) == 14)
     	    {
                 if (strlen($this->cliente_doc) < 1)
     	    	{
@@ -1062,8 +1062,8 @@ class Nfsc_21
 
     	    #02 - X - UF (2 posicoes)
     	    $this->cliente_uf = $valueITEM['@ClientState']; //"SP"; // EX para exterior
-    		//if (strlen($this->cliente_uf) == 0 or strlen($this->cliente_uf) == 1 or empty($this->cliente_uf))
-    		if (strlen($this->cliente_uf) == 2)
+            //if (strlen($this->cliente_uf) == 0 or strlen($this->cliente_uf) == 1 or empty($this->cliente_uf))
+            if (strlen($this->cliente_uf) == 2)
     	    	$this->cliente_uf = $this->cliente_uf;
     	    else
     	        throw new Exception('O estado(UF) do cliente precisa ser uma sigla e conter exatos 2 caracteres, corrija essa informação no cadastro do cliente no sistema. O arquivo ITEM n&atilde;o pode ser escrito!');
@@ -1106,11 +1106,11 @@ class Nfsc_21
             if ($valueITEM['@ContractID'] !== $prev_contract_id && $prev_contract_id !== '')
                 $this->nf_numero +=1;
 
-        	$this->nf_numero = sprintf('%09d', $this->nf_numero); # 12 9 posicoes    (usado em ambos arquivos MESTRE e ITEM)  Obs.: a numeração deve ser reiniciada a cada período de apuração.
+            $this->nf_numero = sprintf('%09d', $this->nf_numero); # 12 9 posicoes    (usado em ambos arquivos MESTRE e ITEM)  Obs.: a numeração deve ser reiniciada a cada período de apuração.
 
 
 
-    		## Informações referentes aos itens de prestação de serviços de comunicação/telecomunicação
+            ## Informações referentes aos itens de prestação de serviços de comunicação/telecomunicação
 
     	    #10 - N - CFOP  (4 posicoes)
     	    # No loop vai precisar checar o tipo/referencia da fatura para usar o CFOP correto
@@ -1202,7 +1202,7 @@ class Nfsc_21
             $this->bc_icms_item = $valueITEM['@InvoiceTotal']; //$valueITEM['@PlanAmount']; //'0.00'; //'1.01';
             $temp_bc_icms_item  = $valueITEM['@InvoiceTotal']; //$valueITEM['@PlanAmount']; //'0.00'; //'1.01';
             $temp_bc_icms_item  = sprintf("%01.2f", $temp_bc_icms_item);
-    		$this->bc_icms_item = str_replace('.', '', str_replace(',', '', $this->bc_icms_item));
+            $this->bc_icms_item = str_replace('.', '', str_replace(',', '', $this->bc_icms_item));
     	    $this->bc_icms_item = sprintf('%011d', $this->bc_icms_item);
             //echo "<br>" . $temp_bc_icms_item;
 
@@ -1211,7 +1211,7 @@ class Nfsc_21
     	    #22 - N - ICMS (com 2 decimais) (11 posicoes)
     	    $this->icms_item = '0.00'; //'1.01';
             $this->icms_item  = sprintf("%01.2f", $this->icms_item);
-    		$this->icms_item = str_replace('.', '', str_replace(',', '', $this->icms_item));
+            $this->icms_item = str_replace('.', '', str_replace(',', '', $this->icms_item));
     	    $this->icms_item = sprintf('%011d', $this->icms_item);
             //echo "<br>" . $this->icms_item;
 
@@ -1219,7 +1219,7 @@ class Nfsc_21
     	    #23 - N - Operações Isentas ou não tributadas (com 2 decimais) (11 posicoes)
     	    $this->op_isentas_nao_tributadas = '0.00'; //'1.01';
             $this->op_isentas_nao_tributadas = sprintf("%01.2f", $this->op_isentas_nao_tributadas);
-    		$this->op_isentas_nao_tributadas = str_replace('.', '', str_replace(',', '', $this->op_isentas_nao_tributadas));
+            $this->op_isentas_nao_tributadas = str_replace('.', '', str_replace(',', '', $this->op_isentas_nao_tributadas));
     	    $this->op_isentas_nao_tributadas = sprintf('%011d', $this->op_isentas_nao_tributadas);
             //echo "<br>" . $this->op_isentas_nao_tributadas;
 
@@ -1228,7 +1228,7 @@ class Nfsc_21
     	    # aqui deve ser informado as multas e juros (valores que nao compoem a base de calculo do icms)
     	    $this->outros_valores = '0.00';
             $this->outros_valores = sprintf("%01.2f", $this->outros_valores);
-    		$this->outros_valores = str_replace('.', '', str_replace(',', '', $this->outros_valores));
+            $this->outros_valores = str_replace('.', '', str_replace(',', '', $this->outros_valores));
     	    $this->outros_valores = sprintf('%011d', $this->outros_valores);
             //echo "<br>" . $this->outros_valores;
 
@@ -1237,7 +1237,7 @@ class Nfsc_21
     	    # onde esta esse valor? mantendo ZERO como default.
     	    $this->aliquota_icms = '01.25'; // valor para SIMPLES NACIONAL Mod.21 - o correto seria consultar o valor do banco de dados.
             $this->aliquota_icms = sprintf("%01.2f", $this->aliquota_icms);
-    		$this->aliquota_icms = str_replace('.', '', str_replace(',', '', $this->aliquota_icms));
+            $this->aliquota_icms = str_replace('.', '', str_replace(',', '', $this->aliquota_icms));
     	    $this->aliquota_icms = sprintf('%04d', $this->aliquota_icms);
             //echo "<br>" . $this->aliquota_icms;
 
@@ -1246,7 +1246,7 @@ class Nfsc_21
 
             #18 - N - valor total - o valor total deve incluir o valor do ICMS (com 2 decimais) (11 posicoes)
             # O Total deve ser igual à soma: BC + Isentas + Outros
-    		# Informações referentes aos valores dos itens de prestação de serviços de comunicação/telecomunicação.
+            # Informações referentes aos valores dos itens de prestação de serviços de comunicação/telecomunicação.
     	    # para manter 2 decimais.. Ex.: 19|00 ZEROS a direita quando numerico serao truncados, entao transforme o valor
     	    #  numerico numa string.
             # foreach abaixo usado para pegar o valor total de todos os items da NF (se precisar)
@@ -1261,7 +1261,7 @@ class Nfsc_21
             $temp_valor_total_item = sprintf("%01.2f", $temp_valor_total_item);
             //echo "<br>" . $temp_valor_total_item;
             $this->valor_total_item = $temp_valor_total_item; //'2.02';  // + campo #21 BC ICMS
-    		$this->valor_total_item = str_replace('.', '', str_replace(',', '', $this->valor_total_item));
+            $this->valor_total_item = str_replace('.', '', str_replace(',', '', $this->valor_total_item));
     	    $this->valor_total_item = sprintf('%011d', $this->valor_total_item);
             //echo "<br>" . $this->valor_total_item;
 
@@ -1272,7 +1272,7 @@ class Nfsc_21
 
 
 
-    		# Informações de Controle
+            # Informações de Controle
 
     	    #26 - X - Situação (1 posicao) -> campo 19 do registro Mestre
     	    $this->situacao_documento = $this->situacao_documento;
@@ -1294,7 +1294,7 @@ class Nfsc_21
     	    $this->quantidade_faturada = $valueITEM['@PlanDownload']; //'1.010';
             $quantidade_faturada_mbps  = ($this->quantidade_faturada / 1024);
             $this->quantidade_faturada = sprintf("%01.3f", $quantidade_faturada_mbps);
-    		$this->quantidade_faturada = str_replace('.', '', str_replace(',', '', $this->quantidade_faturada));
+            $this->quantidade_faturada = str_replace('.', '', str_replace(',', '', $this->quantidade_faturada));
     	    $this->quantidade_faturada = sprintf('%012d', $this->quantidade_faturada);
             //echo "<br>" . $this->quantidade_faturada;
 
@@ -1306,7 +1306,7 @@ class Nfsc_21
     	    #31 - N - Alíquota PIS/PASEP (com 4 decimais) (6 posicoes)
     	    $this->aliquota_pis_pasep = '00.0000';
             $this->aliquota_pis_pasep = sprintf("%01.4f", $this->aliquota_pis_pasep);
-    		$this->aliquota_pis_pasep = str_replace('.', '', str_replace(',', '', $this->aliquota_pis_pasep));
+            $this->aliquota_pis_pasep = str_replace('.', '', str_replace(',', '', $this->aliquota_pis_pasep));
     	    $this->aliquota_pis_pasep = sprintf('%06d', $this->aliquota_pis_pasep);
             //echo "<br>" . $this->aliquota_pis_pasep;
 
@@ -1314,7 +1314,7 @@ class Nfsc_21
     	    #32 - N - PIS/PASEP (com 2 decimais) (11 posicoes)
     	    $this->pis_pasep = '0.00'; //'1.01';
             $this->pis_pasep = sprintf("%01.2f", $this->pis_pasep);
-    		$this->pis_pasep = str_replace('.', '', str_replace(',', '', $this->pis_pasep));
+            $this->pis_pasep = str_replace('.', '', str_replace(',', '', $this->pis_pasep));
     	    $this->pis_pasep = sprintf('%011d', $this->pis_pasep);
             //echo "<br>" . $this->pis_pasep;
 
@@ -1322,7 +1322,7 @@ class Nfsc_21
     	    #33 - N - Alíquota COFINS (com 4 decimais)  (6 posicoes)
     	    $this->aliquota_confins = '0.0000'; //'1.0100';
             $this->aliquota_confins = sprintf("%01.4f", $this->aliquota_confins);
-    		$this->aliquota_confins = str_replace('.', '', str_replace(',', '', $this->aliquota_confins));
+            $this->aliquota_confins = str_replace('.', '', str_replace(',', '', $this->aliquota_confins));
     	    $this->aliquota_confins = sprintf('%06d', $this->aliquota_confins);
             //echo "<br>" . $this->aliquota_confins;
 
@@ -1330,7 +1330,7 @@ class Nfsc_21
     	    #34 - N - COFINS (com 2 decimais)  (11 posicoes)
     	    $this->confins = '0.00'; //'1.01';
             $this->confins = sprintf("%01.2f", $this->confins);
-    		$this->confins = str_replace('.', '', str_replace(',', '', $this->confins));
+            $this->confins = str_replace('.', '', str_replace(',', '', $this->confins));
     	    $this->confins = sprintf('%011d', $this->confins);
             //echo "<br>" . $this->confins;
 
@@ -1373,9 +1373,53 @@ class Nfsc_21
             $this->layout_001 .= $this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo . $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item . $this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->quantidade_contratada . $this->quantidade_medida . $this->valor_total_item . $this->descontos_redutores . $this->acrescimos_despesas_acessorias . $this->bc_icms_item . $this->icms_item . $this->op_isentas_nao_tributadas . $this->outros_valores . $this->aliquota_icms . $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato . $this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep . $this->pis_pasep . $this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial . $this->tipo_isencao_reducao_bc . $this->brancos_5 . $this->item_cod_autenticacao_digital_registro . "\r" . "\n"; // acrescidos de CR/LF (Carriage Return/Line Feed) ao final de cada registro;
 
 
+            # GRAVA DADOS DO ARQUIVO ITEM 001 NO BANCO (tabela: `Nfsc_21_Item`) USANDO OS DADOS DO LAYOUT. (@update: 20190227)
+            /*
+            $this->exec('INSERT INTO "' . $table . '" (' . implode(', ', $columns) . ') VALUES (' . implode($values, ', ') . ')');
+            */
+            $setNfsDadosItem[] = [
+                'id'=>NULL, 
+                'documento'=>$this->cliente_doc, 
+                'uf'=>$this->cliente_uf, 
+                'classe_consumo'=>$this->cliente_classe_consumo, 
+                'tipo_utilizacao'=>$this->cliente_tipo_utilizacao, 
+                'grupo_tensao'=>$this->cliente_grupo_tensao, 
+                'data_emissao'=>$this->nf_data_emissao, 
+                'modelo'=>$this->nf_modelo, 
+                'serie'=>$this->nf_serie, 
+                'numero'=>$this->nf_numero, 
+                'cfop'=>$this->cfop_item, 
+                'ordem_item'=>$this->num_ordem_item, 
+                'codigo_item'=>$this->cod_item, 
+                'descricao_item'=>$this->desc_item, 
+                'codigo_class_item'=>$this->cod_class_item, 
+                'unidade'=>$this->unidade, 
+                'quantidade_contratada'=>$this->quantidade_contratada, 
+                'bc_icms'=>$this->bc_icms_item, 
+                'total'=>$this->valor_total_item, 
+                'acrescimos_despesas_acessorias'=>$this->acrescimos_despesas_acessorias, 
+                'icms'=>$this->icms_item, 
+                'quantidade_medida'=>$this->quantidade_medida, 
+                'aliquota_icms'=>$this->aliquota_icms, 
+                'ano_mes_ref_apuracao'=>$this->ano_mes_ref_apuracao, 
+                'isentas_nao_tributadas'=>$this->op_isentas_nao_tributadas, 
+                'outros_valores'=>$this->outros_valores, 
+                'descontos'=>$this->descontos_redutores, 
+                'situacao'=>$this->situacao_documento, 
+                'quantidade_faturada'=>$this->quantidade_faturada, 
+                'cofins'=>$this->confins, 
+                'tarifa_aplicada'=>$this->tarifa_aplicada, 
+                'aliquota_cofins'=>$this->aliquota_confins, 
+                'pis_pasep'=>$this->pis_pasep, 
+                'aliquota_pis_pasep'=>$this->aliquota_pis_pasep, 
+                'tipo_isencao'=>$this->tipo_isencao_reducao_bc, 
+                'numero_contrato'=>$this->numero_contrato, 
+                'brancos_5'=>$this->brancos_5, 
+                'hash_registro'=>$this->item_cod_autenticacao_digital_registro, 
+                'desconto_judicial'=>$this->indicador_desconto_judicial,
+            ];
+
         } // end foreach here
-
-
 
 
         // precisa gravar essa linha apos o ultimo item do documento fiscal.
@@ -1419,16 +1463,19 @@ class Nfsc_21
         /******************************************************************************************/
 
 
+        # GRAVA DADOS DO ARQUIVO ITEM 001 NO BANCO (tabela: `Nfsc_21_Item`) USANDO OS DADOS DO LAYOUT. (@update: 20190227)
+        $setNfsItem = $database->insert("Nfsc_21_Item", $setNfsDadosItem);
+        //var_dump( $database->error() );
 
 
-    	# layout display (remove it later)
-    	print "<pre>"; print $this->layout_001; print "</pre>";
+    	# layout display
+    	//print "<pre>"; print $this->layout_001; print "</pre>";
 
-		# GRAVA ARQUIVO MESTRE 001
-	    if (!file_put_contents('001/'.$this->file_001, $this->layout_001, LOCK_EX))
-	        throw new Exception('O arquivo <b>'.$this->file_001.'</b> n&atilde;o pode ser escrito!');
-	    else
-	    	return '<pre>O arquivo <b>`'.$this->file_001.'`</b> foi escrito com sucesso!</pre>';
+        # GRAVA ARQUIVO ITEM 001
+        if (!file_put_contents('001/'.$this->file_001, $this->layout_001, LOCK_EX))
+            throw new Exception('O arquivo <b>'.$this->file_001.'</b> n&atilde;o pode ser escrito!');
+        else
+            return '<pre>O arquivo <b>`'.$this->file_001.'`</b> foi escrito com sucesso!</pre>';
 
     }
 
@@ -1446,15 +1493,15 @@ class Nfsc_21
 
 
     	# tratar cnpj da empresa
-		$cnpj = str_replace('.', '', str_replace('/', '', str_replace('-', '', $dados_empresa['0']['cnpj'])));
-		if (strlen($cnpj) != 14)
-	        throw new Exception('O CNPJ da empresa precisa conter exatos 14 caracteres, corrija essa informação no cadastro de empresa do sistema. O arquivo CADASTRO n&atilde;o pode ser escrito!');
+        $cnpj = str_replace('.', '', str_replace('/', '', str_replace('-', '', $dados_empresa['0']['cnpj'])));
+        if (strlen($cnpj) != 14)
+            throw new Exception('O CNPJ da empresa precisa conter exatos 14 caracteres, corrija essa informação no cadastro de empresa do sistema. O arquivo CADASTRO n&atilde;o pode ser escrito!');
 
 
         // inicia a sequencia da nota
         $this->nf_numero = $nf_numero;
 
-	    ################## daqui para baixo precisa validar tudo dentro do LOOP da consulta ################
+        ################## daqui para baixo precisa validar tudo dentro do LOOP da consulta ################
         foreach($arrayMESTRE as $valueMESTRE)
         {
             # consutla a tabela de municipios do IBGE - aqui precisamos do nome da cidae e do codigo da cidade.
@@ -1468,10 +1515,10 @@ class Nfsc_21
                 $this->cliente_doc = $valueMESTRE['@ClientCNPJ'];
 
     	    //$this->cliente_doc = "00.000.000/0001-00";
-    		$this->cliente_doc = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_doc)));
-    		//if (strlen($this->cliente_doc) < 11 or strlen($this->cliente_doc) > 14)
-    		// tratamento: Em se tratando de pessoa não obrigada à inscrição no CNPJ ou CPF, preencher o campo com zeros.
-    		if (strlen($this->cliente_doc) < 1 or strlen($this->cliente_doc) == 11 or strlen($this->cliente_doc) == 14)
+            $this->cliente_doc = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_doc)));
+            //if (strlen($this->cliente_doc) < 11 or strlen($this->cliente_doc) > 14)
+            // tratamento: Em se tratando de pessoa não obrigada à inscrição no CNPJ ou CPF, preencher o campo com zeros.
+            if (strlen($this->cliente_doc) < 1 or strlen($this->cliente_doc) == 11 or strlen($this->cliente_doc) == 14)
     	    {
                 if (strlen($this->cliente_doc) < 1)
     	    	{
