@@ -32,7 +32,7 @@ Veja: **BANCO DE DADOS - TABELAS**.
 
 ## COMO USAR
 
-Para executar o script, aponte o seu browser para o seguinte endereço ou use o form disponivel:
+Para executar o script, aponte o seu browser para o seguinte endereço ou use o form (`nfsc.21.form.php`) disponivel:
 
 - URL para emissao de modelo 21 `<SERVER>:<PORT>/nfsc.21.query.select.data.php?di=2019-02-01&df=2019-02-07&nf=0&ri=1&da=1902&de=20190207&mo=21&tu=4&csv=0`
 - URL para emissao de modelo 22 `<SERVER>:<PORT>/nfsc.21.query.select.data.php?di=2019-02-01&df=2019-02-07&nf=0&ri=1&da=1902&de=20190207&mo=22&tu=1&csv=1`
