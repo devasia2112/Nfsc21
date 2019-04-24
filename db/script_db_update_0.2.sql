@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `Nfsc_21_Mestre` (
     `info_adicional` varchar(30) NOT NULL, 
     `brancos_5` varchar(5) NOT NULL, 
     `cnpj_emitente` int(14) NOT NULL, 
-    `brancos_8` int(8) NOT NULL, PRIMARY KEY (`id`), 
+    `brancos_8` int(8) NOT NULL, 
     `hash_campos` varchar(32) NOT NULL COMMENT 'hash md5 de todos os campos exceto o campo 1 (id)', 
     PRIMARY KEY (`id`), 
     KEY `numero` (`numero`)
