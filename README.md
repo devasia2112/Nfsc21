@@ -14,7 +14,7 @@ esta sendo disponibilizada como código aberto para a comunidade.
 ## AMBIENTE TESTADO
 **Servidor Web:**
 - Linux Debian x86_64_(Jessie) PHP version 5.5 - nginx/1.1.19 - MySQL 5.5
-- Linux 4.14.98-1-MANJARO - PHP 7.3.1 nginx/1.14.2 - mysql Ver 15.1 Distrib 10.3.12-MariaDB
+- Linux 4.19.88-1-MANJARO - PHP 7.4.1 nginx/1.14.2 - mysql Ver 15.1 Distrib 10.3.12-MariaDB
 
 **Nota:** O script foi testado em diversas versões do PHP: 5.3, 5.4, 5.5. Em versões anteriores a
 5.3 precisa fazer alguns ajustes no script para funcionar corretamente.
@@ -71,9 +71,9 @@ Executando o script abaixo, as seguintes tabelas serão criadas no banco de dado
 - `Nfsc_21_Item`       (Arquivo tipo ITEM DE DOCUMENTO FISCAL)
 - `Nfsc_21_Cadastro`   (DADOS CADASTRAIS DO DESTINATÁRIO DO DOCUMENTO FISCAL)
 
-Rodar o script `script_db_update_0.1.sql` localizado no mesmo diretorio desse arquivo.
+Rodar o script `script_db_update_0.2.sql` localizado no diretorio /db.
 
-`user@hostname:/$ mysql -u <username> -p  databasename  < /tmp/script_db_update_0.1.sql`
+`user@hostname:/$ mysql -u <username> -p  databasename  < /tmp/script_db_update_0.2.sql`
 
 ### Informacoes adicionais sobre a estrutura de cada tabela da Nota Fiscal de Serviço de Comunicação, modelo 21.
 
