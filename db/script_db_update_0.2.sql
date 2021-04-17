@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS `Nfsc_21_Mestre` (
     `hash_campos` varchar(32) NOT NULL COMMENT 'hash md5 de todos os campos exceto o campo 1 (id)', 
     PRIMARY KEY (`id`), 
     KEY `numero` (`numero`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1 COMMENT='dados do arquivo Mestre NFSC'
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1 COMMENT='dados do arquivo Mestre NFSC';
 
 
 
@@ -132,7 +132,7 @@ CREATE TABLE `Nfsc_21_Item` (
   `desconto_judicial` varchar(1) COLLATE latin1_general_ci NOT NULL,
   PRIMARY KEY (`id`), 
   KEY `numero` (`numero`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci COMMENT='dados do arquivo Item NFSC'
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci COMMENT='dados do arquivo Item NFSC';
 
 
 
@@ -170,4 +170,4 @@ CREATE TABLE IF NOT EXISTS `Nfsc_21_Cadastro` (
     `hash_autenticacao_registro` varchar(32) COLLATE latin1_general_ci NOT NULL,
     PRIMARY KEY (`id`), 
     KEY `numero_nf` (`numero_nf`) 
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1 COMMENT='dados do arquivo Cadastro NFSC'
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1 COMMENT='dados do arquivo Cadastro NFSC';
