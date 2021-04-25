@@ -14,9 +14,10 @@ esta sendo disponibilizada como código aberto para a comunidade.
 ## AMBIENTE TESTADO
 **Servidor Web:**
 - Linux Debian x86_64_(Jessie) PHP version 5.5 - nginx/1.1.19 - MySQL 5.5
-- Linux 4.19.88-1-MANJARO - PHP 7.4.1 nginx/1.14.2 - mysql Ver 15.1 Distrib 10.3.12-MariaDB
+- Linux 4.19.88-1-MANJARO - PHP 7.4.1 nginx/1.14.2 - MySQL Version 15.1 Distrib 10.3.12-MariaDB
+- Linux 5.4.93-rt51-MANJARO - PHP 8.0.2-PHP 7.3.9 Apache/2.4.41 OpenSSL/1.1.1c - MySQL Version 5.5.5-10.4.6-MariaDB
 
-**Nota:** O script foi testado em diversas versões do PHP: 5.3, 5.4, 5.5. Em versões anteriores a
+**Nota:** O script também foi testado em versões mais antigas do PHP: 5.3, 5.4, 5.5. Em versões anteriores a
 5.3 precisa fazer alguns ajustes no script para funcionar corretamente.
 
 
