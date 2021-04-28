@@ -14,7 +14,7 @@ $time_start = microtime(true);
 
 require 'config.php';
 require 'class/nfsc.21.class.php';
-require 'nfsc.21.sintegra.php'; // mover essa classe para o dir class/
+require 'class/nfsc.21.sintegra.php'; // mover essa classe para o dir class/
 
 error_reporting(E_ALL);
 
@@ -54,6 +54,7 @@ else {
     $status_cliente = [];
     $where = '';
 }
+//echo $where;
 
 // tipo cliente (PF ou PJ)
 if (isset($_GET['tipo_cliente']) and !empty($_GET['tipo_cliente'])) {
@@ -264,7 +265,7 @@ if (checkdate($expdi['1'] , $expdi['2'] , $expdi['0']) == 1 and checkdate($expdf
                 INNER JOIN
                     tb_municipios_ibge cid ON cid.cod_mun = cli.cidade 
                 WHERE
-                    ".$where."
+                    ".$where." 
                     con.ativo = 1 and 
                     ( inv.status='paid' or inv.status='pending' or inv.status='renegociado' ) and
                     ( inv.due_date BETWEEN '$dtini' AND '$dtfim' )
@@ -285,7 +286,7 @@ if (checkdate($expdi['1'] , $expdi['2'] , $expdi['0']) == 1 and checkdate($expdf
     }
     catch (Exception $e)
     {
-        echo "<pre><b>Caught exception:</b> ",  $e->getMessage(), "\n</pre>";
+       // echo "<pre><b>Caught exception:</b> ",  $e->getMessage(), "\n</pre>";
     }
     //print "<pre>"; print_r($response_mestre); print "</pre>";
 
@@ -318,7 +319,7 @@ if (checkdate($expdi['1'] , $expdi['2'] , $expdi['0']) == 1 and checkdate($expdf
             INNER JOIN 
                 tb_municipios_ibge cid ON cid.cod_mun = cli.cidade 
             WHERE 
-                ".$where."
+                ".$where." 
                 con.ativo = 1 and 
                 ( inv.status='paid' or inv.status='pending' or inv.status='renegociado' ) and
                 ( inv.due_date BETWEEN '$dtini' AND '$dtfim' )

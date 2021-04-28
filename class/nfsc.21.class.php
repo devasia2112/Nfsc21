@@ -1,5 +1,6 @@
 <?php
 error_reporting(E_ALL);
+date_default_timezone_set("America/Sao_Paulo");
 /*
 * @Title: Nota Fiscal de Serviço de Comunicação, modelo 21, Modelo 22 (Serie Unica)
 * @Description:
@@ -309,8 +310,8 @@ class Nfsc_21
 
 
     /*******************************************************************************************************************
-    * Declaracao das propriedades (property declaration)
-    *******************************************************************************************************************/
+     * Declaracao das propriedades (property declaration)
+     *******************************************************************************************************************/
 
     # MESTRE propriedades
     # Informações referentes aos dados cadastrais do consumidor (serviços de comunicação/telecomunicação)
@@ -323,7 +324,7 @@ class Nfsc_21
     public $cliente_grupo_tensao                     = '00';  #7  (usado em ambos arquivos MESTRE e ITEM)
     public $cliente_cod_assinante                    = '';    #8  (usado em ambos arquivos MESTRE e CADASTRO)
 
-	# Informações referentes ao documento fiscal
+    # Informações referentes ao documento fiscal
     public $nf_data_emissao                          = '';    #9  emissao do documento fiscal (usado nos arquivos MESTRE, ITEM e CADASTRO)
     public $nf_modelo                                = '21';  #10 modelo 21 por padrao se nao houver parametro (usado nos arquivos MESTRE, ITEM e CADASTRO) 
     public $nf_serie                                 = 'U  '; #11 emissao em serie unica (usado nos arquivos MESTRE, ITEM e CADASTRO)
@@ -337,7 +338,7 @@ class Nfsc_21
     public $nf_op_isenta                             = '';    #17
     public $nf_outros_valores                        = '';    #18
 
-	# Informações de controle
+    # Informações de controle
     public $situacao_documento                       = 'N';   # 19
     public $nf_ano_mes_ref_apuracao                  = '';    # 20
     public $nf_referencia_item                       = 0;     # 21 (valor alterado de '' para 0)
@@ -364,6 +365,7 @@ class Nfsc_21
     # Informações referentes aos itens de prestação de serviços de comunicação
     public $cfop_item                                = '0000';  # 10 caso nao exista um valor no banco de dados, por padrao usamos o CFOP para assinatura de servicos de provimento de acesso a internet. AVISO: o CFOP vai diferir entre Mod.21 e Mod.22. Esse valor precisa vir do plano contratado.
     public $num_ordem_item                           = '';  # 11  numerico 3 posicoes - limite de 990 item por doc fiscal, inicio em 001
+
     public $cod_item                                 = '';  # 12  cod. do servico prestado pelo contribuinte
     public $desc_item                                = '';  # 13
     public $cod_class_item                           = '0000'; #14 segue o mesmo padrao do campo #10 CFOP
@@ -410,7 +412,7 @@ class Nfsc_21
     public $uf_habilitacao_terminal_tel              = ''; #14 deixar em branco
     public $uf_terminal_tel_unid_consumidora         = ''; #usar em branco
 
-	# Informações de Controle
+    # Informações de Controle
     public $codigo_municipio_ibge                    = ''; #19
     #20 usar $brancos_5
     public $cod_autenticacao_digital_registro        = ''; #21
@@ -426,20 +428,20 @@ class Nfsc_21
 
 
     /*******************************************************************************************************************
-    * MESTRE DE DOCUMENTO FISCAL
-    * Notas: Nova redação dada ao subitem 5.1 pelo Conv. ICMS 160/15, efeitos a partir de 01-01-2017.
-    *******************************************************************************************************************/
+     * MESTRE DE DOCUMENTO FISCAL
+     * Notas: Nova redação dada ao subitem 5.1 pelo Conv. ICMS 160/15, efeitos a partir de 01-01-2017.
+     *******************************************************************************************************************/
     public function Mestre($arrayMESTRE, $data1_1, $nf_numero, $nf_ref_item, $data_apuracao, $data_emissao, $dados_empresa, $modelo, $tipo_utilizacao, $database)
     {
         $setNfsDadosMestre  = [];                             # array inicializa vazio
         $temp_next_push     = '';                             # next push
         $tmp_next_push      = '';
         $first_count_item   = 0;                              # contador para o numero de registro no arquivo item, inicia zerado.
-    	$this->layout_001   = '';
-    	$nf_referencia_item = sprintf('%09d', $nf_ref_item);  # 21   melhor usar sprintf() ao invez de str_pad(111, 9, "0", STR_PAD_LEFT);
+        $this->layout_001   = '';
+        $nf_referencia_item = sprintf('%09d', $nf_ref_item);  # 21   melhor usar sprintf() ao invez de str_pad(111, 9, "0", STR_PAD_LEFT);
 
 
-    	# tratar cnpj empresa
+        # tratar cnpj empresa
         $cnpj = str_replace('.', '', str_replace('/', '', str_replace('-', '', $dados_empresa['0']['cnpj'])));
         if (strlen($cnpj) != 14)
             throw new Exception('O CNPJ da empresa precisa conter exatos 14 caracteres, corrija essa informação no cadastro de empresa no sistema. O arquivo MESTRE n&atilde;o pode ser escrito!');
@@ -449,216 +451,203 @@ class Nfsc_21
 
 
 
-	    ################## daqui para baixo precisa validar tudo dentro do LOOP da consulta ################
-        foreach($arrayMESTRE as $valueMESTRE)
-        {
+        ################## daqui para baixo precisa validar tudo dentro do LOOP da consulta ################
+        foreach ($arrayMESTRE as $valueMESTRE) {
 
-    	    #01 - N - tratar documento(cpf/cnpj) cliente
+            #01 - N - tratar documento(cpf/cnpj) cliente
             if (!empty($valueMESTRE['@ClientCPF']))
                 $this->cliente_doc = $valueMESTRE['@ClientCPF'];
             else
                 $this->cliente_doc = $valueMESTRE['@ClientCNPJ'];
 
-    	    //$this->cliente_doc = "00.000.000/0001-00";
-    		$this->cliente_doc = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_doc)));
-    		//if (strlen($this->cliente_doc) < 11 or strlen($this->cliente_doc) > 14)
-    		// tratamento: Em se tratando de pessoa não obrigada à inscrição no CNPJ ou CPF, preencher o campo com zeros.
-    		if (strlen($this->cliente_doc) < 1 or strlen($this->cliente_doc) == 11 or strlen($this->cliente_doc) == 14)
-    	    {
-    	    	if (strlen($this->cliente_doc) < 1)
-    	    	{
-    	    		$this->cliente_doc = '00000000000000';
-    	    		$flag_cliente_doc = 1;
-    	    		$flag_tipo_cliente = 3;  // se nao possuir CPF ou CNPJ entao sera tratado como residencial/pessoa fisica
-    	    	}
-    	    	elseif (strlen($this->cliente_doc) == 11)
-    	    	{
-    	    		//$this->cliente_doc = '000' . $this->cliente_doc; // primeira tentativa nao funcionou
+            //$this->cliente_doc = "00.000.000/0001-00";
+            $this->cliente_doc = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_doc)));
+            //if (strlen($this->cliente_doc) < 11 or strlen($this->cliente_doc) > 14)
+            // tratamento: Em se tratando de pessoa não obrigada à inscrição no CNPJ ou CPF, preencher o campo com zeros.
+            if (strlen($this->cliente_doc) < 1 or strlen($this->cliente_doc) == 11 or strlen($this->cliente_doc) == 14) {
+                if (strlen($this->cliente_doc) < 1) {
+                    $this->cliente_doc = '00000000000000';
+                    $flag_cliente_doc = 1;
+                    $flag_tipo_cliente = 3;  // se nao possuir CPF ou CNPJ entao sera tratado como residencial/pessoa fisica
+                } elseif (strlen($this->cliente_doc) == 11) {
+                    //$this->cliente_doc = '000' . $this->cliente_doc; // primeira tentativa nao funcionou
                     //$this->cliente_doc = sprintf('%014d', $this->cliente_doc);
                     $this->cliente_doc = $this->cliente_doc . '000';
-    	    		$flag_cliente_doc = 1;
-    	    		$flag_tipo_cliente = 3;  // residencial/pessoa fisica
-    	    	}
-                elseif (strlen($this->cliente_doc) == 14)
-    	    	{
+                    $flag_cliente_doc = 1;
+                    $flag_tipo_cliente = 3;  // residencial/pessoa fisica
+                } elseif (strlen($this->cliente_doc) == 14) {
                     //$this->cliente_doc = sprintf('%014d', $this->cliente_doc);
-    	    		$this->cliente_doc = $this->cliente_doc;
-    	    		$flag_cliente_doc = 1;
-    	    		$flag_tipo_cliente = 1;  // comercial
-    	    	}
-    	    	else
+                    $this->cliente_doc = $this->cliente_doc;
+                    $flag_cliente_doc = 1;
+                    $flag_tipo_cliente = 1;  // comercial
+                } else
                     throw new Exception('O documento do cliente (CPF/CNPJ) precisa conter exatos 14 caracteres para CNPJ ou 11 caracteres para CPF, corrija essa informação no cadastro do cliente no sistema. O arquivo MESTRE n&atilde;o pode ser escrito!');
 
                 // vamos converter para um numero inteiro explicitamente fazendo um cast
                 $this->cliente_doc = sprintf('%014d', (int)$this->cliente_doc);
-    	    }
-    	    else
-    	        throw new Exception('O documento do cliente precisa conter exatos 14 caracteres para CNPJ ou 11 caracteres para CPF ou VAZIO para pessoa nao obrigada a inscricao no CPF ou CNPJ, corrija essa informação no cadastro do cliente no sistema. O arquivo MESTRE n&atilde;o pode ser escrito!');
+            } else
+                throw new Exception('O documento do cliente precisa conter exatos 14 caracteres para CNPJ ou 11 caracteres para CPF ou VAZIO para pessoa nao obrigada a inscricao no CPF ou CNPJ, corrija essa informação no cadastro do cliente no sistema. O arquivo MESTRE n&atilde;o pode ser escrito!');
 
 
-    	    #02 - X - tratar IE cliente - ausencia da informacao preencher com ISENTO seguido de posicoes em branco
-    	    //$this->cliente_ie = "231.135.384";
-    	    //$this->cliente_ie = "00009043528537";
-    	    $this->cliente_ie = $valueMESTRE['@ClientIE']; //"00000000000000";
+            #02 - X - tratar IE cliente - ausencia da informacao preencher com ISENTO seguido de posicoes em branco
+            //$this->cliente_ie = "231.135.384";
+            //$this->cliente_ie = "00009043528537";
+            $this->cliente_ie = $valueMESTRE['@ClientIE']; //"00000000000000";
 
-    		$this->cliente_ie = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_ie)));
-    		if ($this->cliente_ie['0'] == 0)
-    		{
-    			if ($this->cliente_ie == '00000000000000')
-    				$temp_cliente_ie = str_pad("ISENTO", 14, " ", STR_PAD_RIGHT);  //$temp_cliente_ie = "ISENTO        ";
-    			else
-    			{
-    				$temp_cliente_ie = substr($this->cliente_ie, 1); // remove o primeiro caracter se for ZERO
-    				for ($a=0;$a<5;$a++)
-    				{
-    					if ($temp_cliente_ie[$a] == 0)
-    						$temp_cliente_ie = substr($temp_cliente_ie, 1); // remove o primeiro caracter se for ZERO
-    				}
-    			}
-    			$this->cliente_ie = $temp_cliente_ie;
-    		}
-    		else
-    			$this->cliente_ie = $this->cliente_ie;
+            $this->cliente_ie = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_ie)));
+            if ($this->cliente_ie['0'] == 0) {
+                if ($this->cliente_ie == '00000000000000')
+                    $temp_cliente_ie = str_pad("ISENTO", 14, " ", STR_PAD_RIGHT);  //$temp_cliente_ie = "ISENTO        ";
+                else {
+                    $temp_cliente_ie = substr($this->cliente_ie, 1); // remove o primeiro caracter se for ZERO
+                    for ($a = 0; $a < 5; $a++) {
+                        if ($temp_cliente_ie[$a] == 0)
+                            $temp_cliente_ie = substr($temp_cliente_ie, 1); // remove o primeiro caracter se for ZERO
+                    }
+                }
+                $this->cliente_ie = $temp_cliente_ie;
+            } else
+                $this->cliente_ie = $this->cliente_ie;
 
-    		$this->cliente_ie = str_pad($this->cliente_ie, 14, " ", STR_PAD_RIGHT);
+            $this->cliente_ie = str_pad($this->cliente_ie, 14, " ", STR_PAD_RIGHT);
 
 
 
-    	    #03 - X - razao social
-    		$this->cliente_razao_social = $valueMESTRE['@ClientName']; //"João Félix Açorês";
-    		// se o arquivo foi salvo com o encoding UTF-8 usar a funcao utf8_decode() para decodificar, caso contrario nao havera necessidade do uso da funcao.
-    		//$this->cliente_razao_social = strtr($this->cliente_razao_social, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
-    		$this->cliente_razao_social = strtr($this->cliente_razao_social, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+            #03 - X - razao social
+            $this->cliente_razao_social = $valueMESTRE['@ClientName']; //"João Félix Açorês";
+            // se o arquivo foi salvo com o encoding UTF-8 usar a funcao utf8_decode() para decodificar, caso contrario nao havera necessidade do uso da funcao.
+            //$this->cliente_razao_social = strtr($this->cliente_razao_social, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+            $this->cliente_razao_social = strtr($this->cliente_razao_social, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
             if (strlen($this->cliente_razao_social) >= 35)
-            	$this->cliente_razao_social = mb_strimwidth($this->cliente_razao_social, 0, 35);
+                $this->cliente_razao_social = mb_strimwidth($this->cliente_razao_social, 0, 35);
             elseif (strlen($this->cliente_razao_social) < 35)
-            	$this->cliente_razao_social = str_pad($this->cliente_razao_social, 35);
+                $this->cliente_razao_social = str_pad($this->cliente_razao_social, 35);
             else
-            	$this->cliente_razao_social = $this->cliente_razao_social;
+                $this->cliente_razao_social = $this->cliente_razao_social;
 
             // checar se a string ja esta em letras maiuscula
             // !importante: por padrao a extensao `php-mbstring` nao vem instalada com o php, para ubuntu server -> apt-get install php-mbstring
-            if (!ctype_upper($this->cliente_razao_social)) 
+            if (!ctype_upper($this->cliente_razao_social))
                 $this->cliente_razao_social = mb_strtoupper($this->cliente_razao_social);
 
 
-    	    #04 - X - UF
-    	    $this->cliente_uf = $valueMESTRE['@ClientState']; //"SP"; // EX para exterior
-    		//if (strlen($this->cliente_uf) == 0 or strlen($this->cliente_uf) == 1 or empty($this->cliente_uf))
-    		if (strlen($this->cliente_uf) == 2)
-    	    	$this->cliente_uf = $this->cliente_uf;
-    	    else
-    	        throw new Exception('O estado(UF) do cliente precisa ser uma sigla e conter exatos 2 caracteres, corrija essa informação no cadastro do cliente no sistema. O arquivo MESTRE n&atilde;o pode ser escrito!');
+            #04 - X - UF
+            $this->cliente_uf = $valueMESTRE['@ClientState']; //"SP"; // EX para exterior
+            //if (strlen($this->cliente_uf) == 0 or strlen($this->cliente_uf) == 1 or empty($this->cliente_uf))
+            if (strlen($this->cliente_uf) == 2)
+                $this->cliente_uf = $this->cliente_uf;
+            else
+                throw new Exception('O estado(UF) do cliente precisa ser uma sigla e conter exatos 2 caracteres, corrija essa informação no cadastro do cliente no sistema. O arquivo MESTRE n&atilde;o pode ser escrito!');
 
 
 
-    	    #05 - N - classe consumo
-    	    $this->cliente_classe_consumo = $this->cliente_classe_consumo;
+            #05 - N - classe consumo
+            $this->cliente_classe_consumo = $this->cliente_classe_consumo;
 
-    	    #06 - N - tipo de utilizacao
-            if (21 == $modelo) 
-    	       $this->cliente_tipo_utilizacao = $this->cliente_tipo_utilizacao; // recebe o valor padrao definido para internet (4)
-            elseif (22 == $modelo) 
-               $this->cliente_tipo_utilizacao = $tipo_utilizacao; // $tipo_utilizacao vai ser um parametro opicional e usado apenas quando para notas do modelo 22 de telecomunicacao.
+            #06 - N - tipo de utilizacao
+            if (21 == $modelo)
+                $this->cliente_tipo_utilizacao = $this->cliente_tipo_utilizacao; // recebe o valor padrao definido para internet (4)
+            elseif (22 == $modelo)
+                $this->cliente_tipo_utilizacao = $tipo_utilizacao; // $tipo_utilizacao vai ser um parametro opicional e usado apenas quando para notas do modelo 22 de telecomunicacao.
             else
                 throw new Exception('O modelo da nota fiscal nao pode ser vazio. A propriedade tipo de utilizacao precisa ser numerico e conter exatos 1 caracter, corrija essa informação no parametro da URL. O arquivo MESTRE n&atilde;o pode ser escrito!');
 
 
 
-    	    #07 - N - grupo de tensao
-    	    $this->cliente_grupo_tensao = $this->cliente_grupo_tensao;
+            #07 - N - grupo de tensao
+            $this->cliente_grupo_tensao = $this->cliente_grupo_tensao;
 
 
-    	    #08 - X - codigo identificacao assinante
-    	    $this->cliente_cod_assinante = str_pad($valueMESTRE['@ClientID'], 12, " ", STR_PAD_RIGHT);
+            #08 - X - codigo identificacao assinante
+            $this->cliente_cod_assinante = str_pad($valueMESTRE['@ClientID'], 12, " ", STR_PAD_RIGHT);
 
 
-    	    #09 - N - data de emissao da NF
-    	    $this->nf_data_emissao = $data_emissao; //20170120; //date("Ymd");
+            #09 - N - data de emissao da NF
+            $this->nf_data_emissao = $data_emissao; //20170120; //date("Ymd");
 
-    	    #10 - N - Modelo
-    	    #$this->nf_modelo = $this->nf_modelo;
+            #10 - N - Modelo
+            #$this->nf_modelo = $this->nf_modelo;
             $this->nf_modelo = $modelo;
 
-    	    #11 - X - Serie
-    	    $this->nf_serie = $this->nf_serie;
+            #11 - X - Serie
+            $this->nf_serie = $this->nf_serie;
 
-    	    #12 - N - numero da NF (sequencial)
-    	    $this->nf_numero +=1;
-        	$this->nf_numero = sprintf('%09d', $this->nf_numero); # 12 9 posicoes    (usado em ambos arquivos MESTRE e ITEM)  Obs.: a numeração deve ser reiniciada a cada período de apuração.
-
-
-    	    #13 - ver campo 13 abaixo antes de gerar o hash final.
+            #12 - N - numero da NF (sequencial)
+            $this->nf_numero += 1;
+            $this->nf_numero = sprintf('%09d', $this->nf_numero); # 12 9 posicoes    (usado em ambos arquivos MESTRE e ITEM)  Obs.: a numeração deve ser reiniciada a cada período de apuração.
 
 
-    	    #14 - N - valor total com 2 decimais
-    	    # transforma o valor numerico em string para poder usar os 2 decimais. Ex.: 19.00 -> 1900
-    	    $this->nf_valor_total = $valueMESTRE['@PlanAmount']; //'2.02';   // foi trocado de @InvoiceItemTotal para @PlanAmount
-    		$this->nf_valor_total = str_replace('.', '', str_replace(',', '', $this->nf_valor_total));
-    		if (strlen($this->nf_valor_total) < 1)
-    	        throw new Exception('O valor total da nota fiscal precisa ser maior que 1. O arquivo MESTRE n&atilde;o pode ser escrito!');
-    	    else
-    	    	$this->nf_valor_total = str_pad($this->nf_valor_total, 12, "0", STR_PAD_LEFT);
+            #13 - ver campo 13 abaixo antes de gerar o hash final.
 
 
-    	    #15 - N - BC ICMS com 2 decimais
-    	    # transforma o valor numerico em string para poder usar os 2 decimais. Ex.: 19.00 -> 1900
-    	    $this->nf_bc_icms = $valueMESTRE['@PlanAmount']; //'0.00'; //'1.01';    // foi trocado de @InvoiceItemTotal para @PlanAmount
-    		$this->nf_bc_icms = str_replace('.', '', str_replace(',', '', $this->nf_bc_icms));
-    		if (strlen($this->nf_bc_icms) < 1)
-    	        throw new Exception('A Base de Cálculo do ICMS destacado no documento fiscal precisa ser maior que 1. O arquivo MESTRE n&atilde;o pode ser escrito!');
-    	    else
-    	    	$this->nf_bc_icms = str_pad($this->nf_bc_icms, 12, "0", STR_PAD_LEFT);
+            #14 - N - valor total com 2 decimais
+            # transforma o valor numerico em string para poder usar os 2 decimais. Ex.: 19.00 -> 1900
+            $this->nf_valor_total = $valueMESTRE['@PlanAmount']; //'2.02';   // foi trocado de @InvoiceItemTotal para @PlanAmount
+            $this->nf_valor_total = str_replace('.', '', str_replace(',', '', $this->nf_valor_total));
+            if (strlen($this->nf_valor_total) < 1)
+                throw new Exception('O valor total da nota fiscal precisa ser maior que 1. O arquivo MESTRE n&atilde;o pode ser escrito!');
+            else
+                $this->nf_valor_total = str_pad($this->nf_valor_total, 12, "0", STR_PAD_LEFT);
 
 
-
-    	    #16 - N - ICMS destacado com 2 decimais
-    	    # transforma o valor numerico em string para poder usar os 2 decimais. Ex.: 19.00 -> 1900
-    	    $this->nf_icms_destacado = '0.00'; //'1.01';
-    		$this->nf_icms_destacado = str_replace('.', '', str_replace(',', '', $this->nf_icms_destacado));
-    		if (strlen($this->nf_icms_destacado) < 1)
-    	        throw new Exception('O ICMS destacado no documento fiscal precisa ser maior que 1. O arquivo MESTRE n&atilde;o pode ser escrito!');
-    	    else
-    	    	$this->nf_icms_destacado = str_pad($this->nf_icms_destacado, 12, "0", STR_PAD_LEFT);
-
-
-    	    #17 - N - operacoes isentas ou nao tributadas com 2 decimais
-    	    # transforma o valor numerico em string para poder usar os 2 decimais. Ex.: 19.00 -> 1900
-    	    $this->nf_op_isenta = '0.00'; //'1.01';
-    		$this->nf_op_isenta = str_replace('.', '', str_replace(',', '', $this->nf_op_isenta));
-    		if (strlen($this->nf_op_isenta) < 1)
-    	        throw new Exception('Operações isentas ou não tributadas no documento fiscal precisa ser maior que 1. O arquivo MESTRE n&atilde;o pode ser escrito!');
-    	    else
-    	    	$this->nf_op_isenta = str_pad($this->nf_op_isenta, 12, "0", STR_PAD_LEFT);
+            #15 - N - BC ICMS com 2 decimais
+            # transforma o valor numerico em string para poder usar os 2 decimais. Ex.: 19.00 -> 1900
+            $this->nf_bc_icms = $valueMESTRE['@PlanAmount']; //'0.00'; //'1.01';    // foi trocado de @InvoiceItemTotal para @PlanAmount
+            $this->nf_bc_icms = str_replace('.', '', str_replace(',', '', $this->nf_bc_icms));
+            if (strlen($this->nf_bc_icms) < 1)
+                throw new Exception('A Base de Cálculo do ICMS destacado no documento fiscal precisa ser maior que 1. O arquivo MESTRE n&atilde;o pode ser escrito!');
+            else
+                $this->nf_bc_icms = str_pad($this->nf_bc_icms, 12, "0", STR_PAD_LEFT);
 
 
 
-    	    #18 - N - outros valores com 2 decimais
-    	    # transforma o valor numerico em string para poder usar os 2 decimais. Ex.: 19.00 -> 1900
-    	    $this->nf_outros_valores = '0.00';
-    		$this->nf_outros_valores = str_replace('.', '', str_replace(',', '', $this->nf_outros_valores));
+            #16 - N - ICMS destacado com 2 decimais
+            # transforma o valor numerico em string para poder usar os 2 decimais. Ex.: 19.00 -> 1900
+            $this->nf_icms_destacado = '0.00'; //'1.01';
+            $this->nf_icms_destacado = str_replace('.', '', str_replace(',', '', $this->nf_icms_destacado));
+            if (strlen($this->nf_icms_destacado) < 1)
+                throw new Exception('O ICMS destacado no documento fiscal precisa ser maior que 1. O arquivo MESTRE n&atilde;o pode ser escrito!');
+            else
+                $this->nf_icms_destacado = str_pad($this->nf_icms_destacado, 12, "0", STR_PAD_LEFT);
+
+
+            #17 - N - operacoes isentas ou nao tributadas com 2 decimais
+            # transforma o valor numerico em string para poder usar os 2 decimais. Ex.: 19.00 -> 1900
+            $this->nf_op_isenta = '0.00'; //'1.01';
+            $this->nf_op_isenta = str_replace('.', '', str_replace(',', '', $this->nf_op_isenta));
+            if (strlen($this->nf_op_isenta) < 1)
+                throw new Exception('Operações isentas ou não tributadas no documento fiscal precisa ser maior que 1. O arquivo MESTRE n&atilde;o pode ser escrito!');
+            else
+                $this->nf_op_isenta = str_pad($this->nf_op_isenta, 12, "0", STR_PAD_LEFT);
+
+
+
+            #18 - N - outros valores com 2 decimais
+            # transforma o valor numerico em string para poder usar os 2 decimais. Ex.: 19.00 -> 1900
+            $this->nf_outros_valores = '0.00';
+            $this->nf_outros_valores = str_replace('.', '', str_replace(',', '', $this->nf_outros_valores));
 
             /* Nao ha necessidade de validar esse valor aqui - campo nao obrigatorio.
             if (strlen($this->nf_outros_valores) < 1)
     	        throw new Exception('Outros valores no documento fiscal precisa ser maior que 1. O arquivo n&atilde;o pode ser escrito!');
     	    else
             */
-        	$this->nf_outros_valores = str_pad($this->nf_outros_valores, 12, "0", STR_PAD_LEFT);
+            $this->nf_outros_valores = str_pad($this->nf_outros_valores, 12, "0", STR_PAD_LEFT);
 
 
 
-    	    #19 - X - situacao do documento
-    	    $this->situacao_documento = $this->situacao_documento;
+            #19 - X - situacao do documento
+            $this->situacao_documento = $this->situacao_documento;
 
 
-    	    #20 - N - ano e mes da apuracao
-    	    $this->nf_ano_mes_ref_apuracao = $data_apuracao; //1701; //date("ym");
+            #20 - N - ano e mes da apuracao
+            $this->nf_ano_mes_ref_apuracao = $data_apuracao; //1701; //date("ym");
 
 
 
 
 
-    	    #21 - N - referencia ao item da NF  (9 posicoes)
+            #21 - N - referencia ao item da NF  (9 posicoes)
             /*
             O campo 21 deve conter a posição física do 1 registro de item de documento fiscal relativa
             ao documento fiscal informado no mestre.
@@ -675,185 +664,173 @@ class Nfsc_21
             6 item 3 da NF 2
             */
             // cipnf = count item per nf
-            foreach($data1_1 as $cipnf)
-            {
+            foreach ($data1_1 as $cipnf) {
                 # inevitavelmente o loop vai rodar inteiro a cada iteracao do loop dos dados do arquivo MESTRE,
                 # porem podemos comparar apenas o contrato correto para incrementar o contador do registro do arquivo ITEM.
-                if ($valueMESTRE['@ContractID'] == $cipnf['@ContractID'])
-                {
+                if ($valueMESTRE['@ContractID'] == $cipnf['@ContractID']) {
                     # o primeiro registro precisa ser iniciado em 1 logicamente
                     if ($first_count_item == 0)
                         $this->nf_referencia_item += 1;
-                    else
-                    {
+                    else {
                         # controla o registro do item
-                        switch ($cipnf['@TotalItemsPerNF'])
-                    	{
-                    		case 1:
+                        switch ($cipnf['@TotalItemsPerNF']) {
+                            case 1:
 
-                                if ($tmp_next_push == 3)
-                                {
+                                if ($tmp_next_push == 3) {
                                     $this->nf_referencia_item += 3;
                                     $tmp_next_push = '';
-                                }
-                                elseif ($tmp_next_push == 4)
-                                {
+                                } elseif ($tmp_next_push == 4) {
                                     $this->nf_referencia_item += 4;
                                     $tmp_next_push = '';
-                                }
-                                else
-                                {
+                                } else {
                                     $this->nf_referencia_item += 2;
                                     $tmp_next_push = '';
                                 }
                                 $msg = "";
 
-                    		break;
-                    		case 2:
+                                break;
+                            case 2:
 
-                                if ($tmp_next_push == 3)
-                                {
+                                if ($tmp_next_push == 3) {
                                     $this->nf_referencia_item += 3;
                                     $tmp_next_push = 3;
-                                }
-                                elseif ($tmp_next_push == 4)
-                                {
+                                } elseif ($tmp_next_push == 4) {
                                     $this->nf_referencia_item += 4;
                                     $tmp_next_push = '';
-                                }
-                                else
-                                {
+                                } else {
                                     $this->nf_referencia_item += 2;
                                     $tmp_next_push = 3;
                                 }
 
                                 $msg = "";
 
-                    		break;
-                    		case 3:
+                                break;
+                            case 3:
 
                                 $this->nf_referencia_item += 2;
                                 $tmp_next_push = 4;
                                 $msg = "";
 
-                    		break;
-                    		default:
-                                print "<pre>".hex2bin("6572726f3a206c696d6974652064652033206974656d7320706f7220646f63756d656e746f2066697363616c2e20636f6e7461746f3a206465657063656c6c40676d61696c2e636f6d")."</pre>";
-                    		break;
-                    	}
+                                break;
+                            default:
+                                print "<pre>" . hex2bin("6572726f3a206c696d6974652064652033206974656d7320706f7220646f63756d656e746f2066697363616c2e20636f6e7461746f3a206465657063656c6c40676d61696c2e636f6d") . "</pre>";
+                                break;
+                        }
                         $temp_TotalItemsPerNF = $cipnf['@TotalItemsPerNF'];
                     }
-                    $first_count_item +=1;    # incrementa o contador (esse contador nao sera usado nos dados da NF)
+                    $first_count_item += 1;    # incrementa o contador (esse contador nao sera usado nos dados da NF)
                 }
             }
-    		//$this->nf_referencia_item = str_replace('.', '', $this->nf_referencia_item);
-    		if (strlen($this->nf_referencia_item) < 1)
-    	        throw new Exception('Informar o número do registro do arquivo ITEM DO DOCUMENTO FISCAL, onde se encontra o primeiro item do documento fiscal. O arquivo MESTRE n&atilde;o pode ser escrito!');
-    	    else
-    	    	$this->nf_referencia_item = str_pad($this->nf_referencia_item, 9, "0", STR_PAD_LEFT);
+            //$this->nf_referencia_item = str_replace('.', '', $this->nf_referencia_item);
+            if (strlen($this->nf_referencia_item) < 1)
+                throw new Exception('Informar o número do registro do arquivo ITEM DO DOCUMENTO FISCAL, onde se encontra o primeiro item do documento fiscal. O arquivo MESTRE n&atilde;o pode ser escrito!');
+            else
+                $this->nf_referencia_item = str_pad($this->nf_referencia_item, 9, "0", STR_PAD_LEFT);
 
 
 
 
 
-    	    #22 - X - numero terminal telefonico ou unid. consumidora  (12 posicoes)
+            #22 - X - numero terminal telefonico ou unid. consumidora  (12 posicoes)
             $this->num_terminal_tel_unid_consumidora = str_replace(' ', '', str_replace('.', '', str_replace('/', '', str_replace('-', '', $valueMESTRE['@ClientPhone1']))));
-    	    $this->num_terminal_tel_unid_consumidora = str_pad($this->num_terminal_tel_unid_consumidora, 12, " ", STR_PAD_RIGHT);
+            $this->num_terminal_tel_unid_consumidora = str_pad($this->num_terminal_tel_unid_consumidora, 12, " ", STR_PAD_RIGHT);
 
 
 
-    	    #23 - N - flag do campo 1 - 1 = CNPJ; 2 = CPF; 3 = PJ nao obrigada a CNPJ; 4 = PF nao obrigada a CPF
-    	    $this->indica_tipo_campo_1 = $flag_cliente_doc;
+            #23 - N - flag do campo 1 - 1 = CNPJ; 2 = CPF; 3 = PJ nao obrigada a CNPJ; 4 = PF nao obrigada a CPF
+            $this->indica_tipo_campo_1 = $flag_cliente_doc;
 
-    	    #24 - N - tipo de cliente
-    	    $this->tipo_cliente = str_pad($flag_tipo_cliente, 2, "0", STR_PAD_LEFT);
+            #24 - N - tipo de cliente
+            $this->tipo_cliente = str_pad($flag_tipo_cliente, 2, "0", STR_PAD_LEFT);
 
-    	    #25 - N - subclasse consumo
-    	    $this->subclasse_consumo = str_pad($this->subclasse_consumo, 2, "0", STR_PAD_LEFT);
+            #25 - N - subclasse consumo
+            $this->subclasse_consumo = str_pad($this->subclasse_consumo, 2, "0", STR_PAD_LEFT);
 
 
-    	    #26 - X - numero do terminal telefonico principal
+            #26 - X - numero do terminal telefonico principal
             $this->numero_terminal_tel_principal = str_replace(' ', '', str_replace('.', '', str_replace('/', '', str_replace('-', '', $valueMESTRE['@ClientPhone1']))));
-    	    $this->numero_terminal_tel_principal = str_pad($this->numero_terminal_tel_principal, 12, " ", STR_PAD_RIGHT);
+            $this->numero_terminal_tel_principal = str_pad($this->numero_terminal_tel_principal, 12, " ", STR_PAD_RIGHT);
 
 
-    	    #27 - N - CNPJ do emitente
-    	    $this->cnpj_emitente = $dados_empresa['0']['cnpj']; //"01.001.001/0001-01";
-    		$this->cnpj_emitente = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cnpj_emitente)));
-    		if (strlen($this->cnpj_emitente) < 14 or strlen($this->cnpj_emitente) > 14)
-    	        throw new Exception('O documento da empresa precisa conter exatos 14 caracteres para CNPJ, corrija essa informação no cadastro da empresa no sistema. O arquivo MESTRE n&atilde;o pode ser escrito!');
-    	    else
-        		$this->cnpj_emitente = $this->cnpj_emitente;
+            #27 - N - CNPJ do emitente
+            $this->cnpj_emitente = $dados_empresa['0']['cnpj']; //"01.001.001/0001-01";
+            $this->cnpj_emitente = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cnpj_emitente)));
+            if (strlen($this->cnpj_emitente) < 14 or strlen($this->cnpj_emitente) > 14)
+                throw new Exception('O documento da empresa precisa conter exatos 14 caracteres para CNPJ, corrija essa informação no cadastro da empresa no sistema. O arquivo MESTRE n&atilde;o pode ser escrito!');
+            else
+                $this->cnpj_emitente = $this->cnpj_emitente;
 
 
-    	    #28 - X - numero/ID da fatura comercial (invoice) (20 posicoes)
-        	$this->numero_fatura_comercial = $valueMESTRE['@InvoiceID']; //342356;
-        	$this->numero_fatura_comercial = str_pad($this->numero_fatura_comercial, 20, " ", STR_PAD_RIGHT);
+            #28 - X - numero/ID da fatura comercial (invoice) (20 posicoes)
+            $this->numero_fatura_comercial = $valueMESTRE['@InvoiceID']; //342356;
+            $this->numero_fatura_comercial = str_pad($this->numero_fatura_comercial, 20, " ", STR_PAD_RIGHT);
 
 
-    	    #29 - N - Valor total da fatura comercial (12 posicoes)
-    	    # transforma o valor total (numerico) em string, dessa maneira valores com decimais 00 vao se manter para ser escrito no arquivo.
-    	    $this->valor_total_fatura_comercial = $valueMESTRE['@PlanAmount']; //'1.01';      // foi trocado de @InvoiceItemTotal para @PlanAmount
-    		$this->valor_total_fatura_comercial = str_replace('.', '', str_replace(',', '', $this->valor_total_fatura_comercial));
-        	$this->valor_total_fatura_comercial = str_pad($this->valor_total_fatura_comercial, 12, "0", STR_PAD_LEFT);
+            #29 - N - Valor total da fatura comercial (12 posicoes)
+            # transforma o valor total (numerico) em string, dessa maneira valores com decimais 00 vao se manter para ser escrito no arquivo.
+            $this->valor_total_fatura_comercial = $valueMESTRE['@PlanAmount']; //'1.01';      // foi trocado de @InvoiceItemTotal para @PlanAmount
+            $this->valor_total_fatura_comercial = str_replace('.', '', str_replace(',', '', $this->valor_total_fatura_comercial));
+            $this->valor_total_fatura_comercial = str_pad($this->valor_total_fatura_comercial, 12, "0", STR_PAD_LEFT);
 
 
 
 
-    	    #30 - N - data leitura anterior
-    		$this->data_leitura_anterior = $this->data_leitura_anterior;
+            #30 - N - data leitura anterior
+            $this->data_leitura_anterior = $this->data_leitura_anterior;
 
 
-    	    #31 - N - data leitura atual
-    		$this->data_leitura_atual = $this->data_leitura_atual;
+            #31 - N - data leitura atual
+            $this->data_leitura_atual = $this->data_leitura_atual;
 
 
-    	    #32 - X - brancos (50 posicoes)
-    	    $this->brancos_50 = str_pad($this->brancos_50, 50, " ", STR_PAD_RIGHT);
+            #32 - X - brancos (50 posicoes)
+            $this->brancos_50 = str_pad($this->brancos_50, 50, " ", STR_PAD_RIGHT);
 
 
-    	    #33 - N - brancos (8 posicoes)  - Informar a data da autorização de emissão do documento fiscal eletrônico(CV115-e) - ZERO se o documento nao tiver sido implementado!
-        	$this->brancos_8 = str_pad($this->brancos_8, 8, "0", STR_PAD_LEFT);
+            #33 - N - brancos (8 posicoes)  - Informar a data da autorização de emissão do documento fiscal eletrônico(CV115-e) - ZERO se o documento nao tiver sido implementado!
+            $this->brancos_8 = str_pad($this->brancos_8, 8, "0", STR_PAD_LEFT);
 
 
-    	    #34 - X - informacoes adicionais (30 posicoes)
-    	    $this->info_adicional = $this->info_adicional;
-    	    $this->info_adicional = str_pad($this->info_adicional, 30, " ", STR_PAD_RIGHT);
+            #34 - X - informacoes adicionais (30 posicoes)
+            $this->info_adicional = $this->info_adicional;
+            $this->info_adicional = str_pad($this->info_adicional, 30, " ", STR_PAD_RIGHT);
 
 
-    	    #35 - X - brancos
-    	    $this->brancos_5 = str_pad($this->brancos_5, 5, " ", STR_PAD_RIGHT);
+            #35 - X - brancos
+            $this->brancos_5 = str_pad($this->brancos_5, 5, " ", STR_PAD_RIGHT);
 
 
             #13 - X - MD5() dos campos 01, 12, 14, 15, 16, 09 e 27
-    	    $this->nf_caddf = md5(
+            $this->nf_caddf = md5(
                 $this->cliente_doc . $this->nf_numero . $this->nf_valor_total . $this->nf_bc_icms .
-                $this->nf_icms_destacado . $this->nf_data_emissao . $this->cnpj_emitente );
+                    $this->nf_icms_destacado . $this->nf_data_emissao . $this->cnpj_emitente
+            );
 
 
-    	    #36 - X - codigo de autenticacao digital (hash md5 dos campos 01 a 35)
-    	    $this->mestre_cod_autenticacao_digital_registro = '';
-        	$this->mestre_cod_autenticacao_digital_registro = md5(
+            #36 - X - codigo de autenticacao digital (hash md5 dos campos 01 a 35)
+            $this->mestre_cod_autenticacao_digital_registro = '';
+            $this->mestre_cod_autenticacao_digital_registro = md5(
                 $this->cliente_doc . $this->cliente_ie . $this->cliente_razao_social . $this->cliente_uf .
-                $this->cliente_classe_consumo . $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao .
-                $this->cliente_cod_assinante . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie .
-                $this->nf_numero . $this->nf_caddf . $this->nf_valor_total . $this->nf_bc_icms .
-                $this->nf_icms_destacado . $this->nf_op_isenta . $this->nf_outros_valores .
-                $this->situacao_documento . $this->nf_ano_mes_ref_apuracao . $this->nf_referencia_item .
-                $this->num_terminal_tel_unid_consumidora . $this->indica_tipo_campo_1 . $this->tipo_cliente .
-                $this->subclasse_consumo . $this->numero_terminal_tel_principal . $this->cnpj_emitente .
-                $this->numero_fatura_comercial . $this->valor_total_fatura_comercial . $this->data_leitura_anterior .
-                $this->data_leitura_atual . $this->brancos_50 . $this->brancos_8 . $this->info_adicional .
-                $this->brancos_5 );
+                    $this->cliente_classe_consumo . $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao .
+                    $this->cliente_cod_assinante . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie .
+                    $this->nf_numero . $this->nf_caddf . $this->nf_valor_total . $this->nf_bc_icms .
+                    $this->nf_icms_destacado . $this->nf_op_isenta . $this->nf_outros_valores .
+                    $this->situacao_documento . $this->nf_ano_mes_ref_apuracao . $this->nf_referencia_item .
+                    $this->num_terminal_tel_unid_consumidora . $this->indica_tipo_campo_1 . $this->tipo_cliente .
+                    $this->subclasse_consumo . $this->numero_terminal_tel_principal . $this->cnpj_emitente .
+                    $this->numero_fatura_comercial . $this->valor_total_fatura_comercial . $this->data_leitura_anterior .
+                    $this->data_leitura_atual . $this->brancos_50 . $this->brancos_8 . $this->info_adicional .
+                    $this->brancos_5
+            );
 
-    	    ################## ########################################################## ################
+            ################## ########################################################## ################
 
 
-        	# filename { UF   CNPJ   Modelo   Serie   Ano   Mes   Status   Tipo   Volume(inicia em 001) }
+            # filename { UF   CNPJ   Modelo   Serie   Ano   Mes   Status   Tipo   Volume(inicia em 001) }
             // $this->file_001 = $dados_empresa['0']['estado'] . $cnpj . $this->nf_modelo . $this->nf_serie . date("ym") . 'N01M.001';
             $this->file_001 = $dados_empresa['0']['estado'] . $cnpj . $this->nf_modelo . $this->nf_serie . $data_apuracao . 'N01M.001';
-        	// montar o layout acrescidos de CR/LF (Carriage Return/Line Feed) ao final de cada registro;
-        	$this->layout_001 .= $this->cliente_doc . $this->cliente_ie . $this->cliente_razao_social . $this->cliente_uf . $this->cliente_classe_consumo . $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->cliente_cod_assinante . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->nf_caddf . $this->nf_valor_total . $this->nf_bc_icms . $this->nf_icms_destacado . $this->nf_op_isenta . $this->nf_outros_valores . $this->situacao_documento . $this->nf_ano_mes_ref_apuracao . $this->nf_referencia_item . $this->num_terminal_tel_unid_consumidora . $this->indica_tipo_campo_1 . $this->tipo_cliente . $this->subclasse_consumo . $this->numero_terminal_tel_principal . $this->cnpj_emitente . $this->numero_fatura_comercial . $this->valor_total_fatura_comercial . $this->data_leitura_anterior . $this->data_leitura_atual . $this->brancos_50 . $this->brancos_8 . $this->info_adicional . $this->brancos_5 . $this->mestre_cod_autenticacao_digital_registro . "\r\n";
+            // montar o layout acrescidos de CR/LF (Carriage Return/Line Feed) ao final de cada registro;
+            $this->layout_001 .= $this->cliente_doc . $this->cliente_ie . $this->cliente_razao_social . $this->cliente_uf . $this->cliente_classe_consumo . $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->cliente_cod_assinante . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->nf_caddf . $this->nf_valor_total . $this->nf_bc_icms . $this->nf_icms_destacado . $this->nf_op_isenta . $this->nf_outros_valores . $this->situacao_documento . $this->nf_ano_mes_ref_apuracao . $this->nf_referencia_item . $this->num_terminal_tel_unid_consumidora . $this->indica_tipo_campo_1 . $this->tipo_cliente . $this->subclasse_consumo . $this->numero_terminal_tel_principal . $this->cnpj_emitente . $this->numero_fatura_comercial . $this->valor_total_fatura_comercial . $this->data_leitura_anterior . $this->data_leitura_atual . $this->brancos_50 . $this->brancos_8 . $this->info_adicional . $this->brancos_5 . $this->mestre_cod_autenticacao_digital_registro . "\r\n";
 
 
             // esse array contem o ID do contrato, o valor total dos item do documento fiscal do contrato e uma mensagem 
@@ -861,7 +838,7 @@ class Nfsc_21
             $response_mestre[] = array(
                 "cid" => $valueMESTRE['@ContractID'],
                 "total" => $valueMESTRE['@PlanAmount'],     // foi trocado de @InvoiceItemTotal para @PlanAmount @PlanAmount
-                "msg" => "<pre>O arquivo <b>`".$this->file_001."`</b> foi escrito com sucesso!</pre>"
+                "msg" => "<pre>O arquivo <b>`" . $this->file_001 . "`</b> foi escrito com sucesso!</pre>"
             );
 
 
@@ -872,45 +849,44 @@ class Nfsc_21
             $query = $this->exec('INSERT INTO "' . $table . '" (' . implode(', ', $columns) . ') VALUES (' . implode($values, ', ') . ')');
             */
             $setNfsDadosMestre[] = [
-                'id'=>NULL, 
-                'documento'=>$this->cliente_doc, 
-                'ie'=>$this->cliente_ie, 
-                'nome_cliente'=>$this->cliente_razao_social, 
-                'uf'=>$this->cliente_uf,
-                'classe_consumo'=>$this->cliente_classe_consumo, 
-                'tipo_utilizacao'=>$this->cliente_tipo_utilizacao, 
-                'grupo_tensao'=>$this->cliente_grupo_tensao, 
-                'codigo_cliente'=>$this->cliente_cod_assinante, 
-                'data_emissao'=>$this->nf_data_emissao, 
-                'modelo'=>$this->nf_modelo, 
-                'serie'=>$this->nf_serie, 
-                'numero'=>$this->nf_numero, 
-                'hash_autenticacao_nf'=>$this->nf_caddf, 
-                'valor_total'=>$this->nf_valor_total,
-                'bc_icms'=>$this->nf_bc_icms, 
-                'icms_destacado'=>$this->nf_icms_destacado,
-                'isentas_nao_tributadas'=>$this->nf_op_isenta, 
-                'situacao_documento'=>$this->situacao_documento, 
-                'ano_mes_apuracao'=>$this->nf_ano_mes_ref_apuracao, 
-                'ref_item_nf'=>$this->nf_referencia_item, 
-                'subclasse_consumo'=>$this->subclasse_consumo, 
-                'num_terminal_telefonico_principal'=>$this->numero_terminal_tel_principal, 
-                'tipo_dado_campo_2'=>0, # propriedade nao usada, necessario remover coluna na tabela `Nfsc_21_Mestre`
-                'outros_valores'=>$this->nf_outros_valores, 
-                'tipo_cliente'=>$this->tipo_cliente, 
-                'num_terminal_telefonico'=>$this->num_terminal_tel_unid_consumidora, 
-                'valor_total_fatura_comercial'=>$this->valor_total_fatura_comercial, 
-                'brancos_50'=>$this->brancos_50,
-                'numero_fatura_comercial'=>$this->numero_fatura_comercial, 
-                'data_leitura_anterior'=>$this->data_leitura_anterior, 
-                'data_leitura_atual'=>$this->data_leitura_atual, 
-                'info_adicional'=>$this->info_adicional, 
-                'brancos_5'=>$this->brancos_5, 
-                'cnpj_emitente'=>$this->cnpj_emitente, 
-                'hash_campos'=>$this->mestre_cod_autenticacao_digital_registro,
-                'brancos_8'=>$this->brancos_8,
+                'id' => NULL,
+                'documento' => $this->cliente_doc,
+                'ie' => $this->cliente_ie,
+                'nome_cliente' => $this->cliente_razao_social,
+                'uf' => $this->cliente_uf,
+                'classe_consumo' => $this->cliente_classe_consumo,
+                'tipo_utilizacao' => $this->cliente_tipo_utilizacao,
+                'grupo_tensao' => $this->cliente_grupo_tensao,
+                'codigo_cliente' => $this->cliente_cod_assinante,
+                'data_emissao' => $this->nf_data_emissao,
+                'modelo' => $this->nf_modelo,
+                'serie' => $this->nf_serie,
+                'numero' => $this->nf_numero,
+                'hash_autenticacao_nf' => $this->nf_caddf,
+                'valor_total' => $this->nf_valor_total,
+                'bc_icms' => $this->nf_bc_icms,
+                'icms_destacado' => $this->nf_icms_destacado,
+                'isentas_nao_tributadas' => $this->nf_op_isenta,
+                'situacao_documento' => $this->situacao_documento,
+                'ano_mes_apuracao' => $this->nf_ano_mes_ref_apuracao,
+                'ref_item_nf' => $this->nf_referencia_item,
+                'subclasse_consumo' => $this->subclasse_consumo,
+                'num_terminal_telefonico_principal' => $this->numero_terminal_tel_principal,
+                'tipo_dado_campo_2' => 0, # propriedade nao usada, necessario remover coluna na tabela `Nfsc_21_Mestre`
+                'outros_valores' => $this->nf_outros_valores,
+                'tipo_cliente' => $this->tipo_cliente,
+                'num_terminal_telefonico' => $this->num_terminal_tel_unid_consumidora,
+                'valor_total_fatura_comercial' => $this->valor_total_fatura_comercial,
+                'brancos_50' => $this->brancos_50,
+                'numero_fatura_comercial' => $this->numero_fatura_comercial,
+                'data_leitura_anterior' => $this->data_leitura_anterior,
+                'data_leitura_atual' => $this->data_leitura_atual,
+                'info_adicional' => $this->info_adicional,
+                'brancos_5' => $this->brancos_5,
+                'cnpj_emitente' => $this->cnpj_emitente,
+                'hash_campos' => $this->mestre_cod_autenticacao_digital_registro,
+                'brancos_8' => $this->brancos_8,
             ];
-
         } // end foreach here
 
         # GRAVA DADOS DO ARQUIVO MESTRE 001 NO BANCO (tabela: `Nfsc_21_Mestre`) USANDO OS DADOS DO LAYOUT. (@update: 20190227)
@@ -922,57 +898,52 @@ class Nfsc_21
         //print "<pre>"; print $this->layout_001; print "</pre>";
 
 
-		# GRAVA ARQUIVO MESTRE 001
-	    if (!@file_put_contents('Files/001/'.$this->file_001, $this->layout_001, LOCK_EX))
-	        throw new Exception('O arquivo <b>'.$this->file_001.'</b> n&atilde;o pode ser escrito!');
-	    else 
-        {
+        # GRAVA ARQUIVO MESTRE 001
+        if (!@file_put_contents('Files/001/' . $this->file_001, $this->layout_001, LOCK_EX))
+            throw new Exception('O arquivo <b>' . $this->file_001 . '</b> n&atilde;o pode ser escrito!');
+        else {
             // grava nome e data do arquivo que foi gerado na tabela: `Nfsc_21_NF_Regencia`
             // caso array contenha dados.
-            if (!empty($setNfsDadosMestre)) 
-            {
+            if (!empty($setNfsDadosMestre)) {
                 $setNfsMestreRegencia = $database->insert("Nfsc_21_NF_Regencia", [
-                    "data_gerado" => date('Y-m-d H:i:s'), 
+                    "data_gerado" => date('Y-m-d H:i:s'),
                     "arquivo" => $this->file_001
                 ]);
                 return $response_mestre;
             }
         }
-
-
-
     }
 
 
 
 
     /*******************************************************************************************************************
-    * ITEM DE DOCUMENTO FISCAL
-    * Conterá todos os itens que compõem o valor total de cada um dos documentos fiscais informados no arquivo
-    * MESTRE DE DOCUMENTO FISCAL. Deverá ser informado pelo menos um item para cada registro do arquivo MESTRE DE
-    * DOCUMENTO FISCAL;
-    *
-    * IMPORTANTE: O arquivo deve ser classificado pelo número do documento fiscal e número de item, em ordem crescente.
-    * Deverão ser criados tantos registros quantos forem os itens de cada documento fiscal emitido, sendo criado, no
-    * mínimo, um registro fiscal de item de documento fiscal para cada documento fiscal emitido.
-    * No caso de empresa optante pelo Simples Nacional, deverá ser criado um registro de item adicional para cada
-    * documento fiscal, devendo constar, no campo 13 (Descrição do serviço ou fornecimento), a expressão
-    * "OPTANTE SN - ALÍQUOTA NN, NN", onde "NN, NN" corresponderá à alíquota de ICMS em que o optante estiver
-    * enquadrado no período de apuração, expressa com duas casas decimais. Os campos 10 e 14 devem utilizar os valores
-    * utilizados para a operação ou prestação principal. Os campos 16 a 25 deverão ser preenchidos com zeros
-    * (vide item 11.10 Anexo I);
-    *******************************************************************************************************************/
+     * ITEM DE DOCUMENTO FISCAL
+     * Conterá todos os itens que compõem o valor total de cada um dos documentos fiscais informados no arquivo
+     * MESTRE DE DOCUMENTO FISCAL. Deverá ser informado pelo menos um item para cada registro do arquivo MESTRE DE
+     * DOCUMENTO FISCAL;
+     *
+     * IMPORTANTE: O arquivo deve ser classificado pelo número do documento fiscal e número de item, em ordem crescente.
+     * Deverão ser criados tantos registros quantos forem os itens de cada documento fiscal emitido, sendo criado, no
+     * mínimo, um registro fiscal de item de documento fiscal para cada documento fiscal emitido.
+     * No caso de empresa optante pelo Simples Nacional, deverá ser criado um registro de item adicional para cada
+     * documento fiscal, devendo constar, no campo 13 (Descrição do serviço ou fornecimento), a expressão
+     * "OPTANTE SN - ALÍQUOTA NN, NN", onde "NN, NN" corresponderá à alíquota de ICMS em que o optante estiver
+     * enquadrado no período de apuração, expressa com duas casas decimais. Os campos 10 e 14 devem utilizar os valores
+     * utilizados para a operação ou prestação principal. Os campos 16 a 25 deverão ser preenchidos com zeros
+     * (vide item 11.10 Anexo I);
+     *******************************************************************************************************************/
     public function Item($response_mestre, $arrayITEM, $nf_numero, $nf_ref_item, $data_apuracao, $data_emissao, $dados_empresa, $modelo, $tipo_utilizacao, $database)
     {
         $this->ii           = 0; // ii = index do item / Informar o número de ordem do item do documento fiscal - inicia em 001 sempre
-    	$this->layout_001   = '';
-    	$nf_referencia_item = sprintf('%09d', $nf_ref_item);  # 21   melhor usar sprintf() ao invez de str_pad(111, 9, "0", STR_PAD_LEFT);
+        $this->layout_001   = '';
+        $nf_referencia_item = sprintf('%09d', $nf_ref_item);  # 21   melhor usar sprintf() ao invez de str_pad(111, 9, "0", STR_PAD_LEFT);
 
 
-    	# tratar cnpj da empresa
-		$cnpj = str_replace('.', '', str_replace('/', '', str_replace('-', '', $dados_empresa['0']['cnpj'])));
-		if (strlen($cnpj) != 14)
-	        throw new Exception('O CNPJ da empresa precisa conter exatos 14 caracteres, corrija essa informação no cadastro de empresa do sistema. O arquivo n&atilde;o pode ser escrito!');
+        # tratar cnpj da empresa
+        $cnpj = str_replace('.', '', str_replace('/', '', str_replace('-', '', $dados_empresa['0']['cnpj'])));
+        if (strlen($cnpj) != 14)
+            throw new Exception('O CNPJ da empresa precisa conter exatos 14 caracteres, corrija essa informação no cadastro de empresa do sistema. O arquivo n&atilde;o pode ser escrito!');
 
 
         # numero sequencial da NF
@@ -985,10 +956,9 @@ class Nfsc_21
         $count            = 0;
 
 
-	    ################## daqui para baixo precisa validar tudo dentro do LOOP da consulta ################
+        ################## daqui para baixo precisa validar tudo dentro do LOOP da consulta ################
 
-        foreach((array) $arrayITEM as $valueITEM)
-        {
+        foreach ((array) $arrayITEM as $valueITEM) {
             #10 - precisamos do CFOP do banco e nao o valor padrao definido na propriedade `$this->cfop_item`.
             //$this->cfop_item = $valueITEM['@CfopCode']; // precisa usar o CFOP cadastrado no plano ou contrato.
             $this->cfop_item = str_pad($valueITEM['@CfopCode'], 4, '0', STR_PAD_LEFT); // N
@@ -999,18 +969,19 @@ class Nfsc_21
 
             // precisa gravar essa linha apos o ultimo item do documento fiscal
             // fazemos isso quando o ID do contrato mudar.
-            if ($valueITEM['@ContractID'] !== $prev_contract_id && $prev_contract_id !== '')
-            {
-                $this->num_ordem_item +=1;
+            if ($valueITEM['@ContractID'] !== $prev_contract_id && $prev_contract_id !== '') {
+
+                $this->num_ordem_item += 1;
                 $this->num_ordem_item = sprintf('%03d', $this->num_ordem_item); // inicia em 001;
+
                 /******************************************************************************************
-                * No caso de empresa optante pelo Simples Nacional, deverá ser criado um registro de item adicional para cada
-                * documento fiscal, devendo constar, no campo 13 (Descrição do serviço ou fornecimento), a expressão
-                * "OPTANTE SN - ALÍQUOTA NN, NN", onde "NN, NN" corresponderá à alíquota de ICMS em que o optante estiver
-                * enquadrado no período de apuração, expressa com duas casas decimais. Os campos 10 e 14 devem utilizar os valores
-                * utilizados para a operação ou prestação principal. Os campos 16 a 25 deverão ser preenchidos com zeros
-                * (vide item 11.10 Anexo I);
-                */
+                 * No caso de empresa optante pelo Simples Nacional, deverá ser criado um registro de item adicional para cada
+                 * documento fiscal, devendo constar, no campo 13 (Descrição do serviço ou fornecimento), a expressão
+                 * "OPTANTE SN - ALÍQUOTA NN, NN", onde "NN, NN" corresponderá à alíquota de ICMS em que o optante estiver
+                 * enquadrado no período de apuração, expressa com duas casas decimais. Os campos 10 e 14 devem utilizar os valores
+                 * utilizados para a operação ou prestação principal. Os campos 16 a 25 deverão ser preenchidos com zeros
+                 * (vide item 11.10 Anexo I);
+                 */
                 #13 - X - Descrição do item (40 posicoes)
                 //$this->desc_item = "OPTANTE SN - ALÍQUOTA " . $this->aliquota_icms; // "OPTANTE SN - ALÍQUOTA NN, NN";
                 $this->desc_item = "OPTANTE SN - ALIQUOTA " . $this->aliquota_icms; // "OPTANTE SN - ALÍQUOTA NN, NN";
@@ -1024,16 +995,16 @@ class Nfsc_21
                 //$this->outros_valores . $this->aliquota_icms .
 
                 #38 - X - Código de Autenticação Digital do registro MD5(campos 01 a 37) (32 posicoes)
-        	    $this->item_cod_autenticacao_digital_registro = md5(
-        	    	$this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo .
-        	    	$this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao .
-        	    	$this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item .
-        	    	$this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->campos_16_25 .
-                    $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato .
-                    $this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep .
-                    $this->pis_pasep . $this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial .
-                    $this->tipo_isencao_reducao_bc . $this->brancos_5
-        	    );
+                $this->item_cod_autenticacao_digital_registro = md5(
+                    $this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo .
+                        $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao .
+                        $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item .
+                        $this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->campos_16_25 .
+                        $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato .
+                        $this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep .
+                        $this->pis_pasep . $this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial .
+                        $this->tipo_isencao_reducao_bc . $this->brancos_5
+                );
 
                 //                   01                   02                  03                              04                               05                            06                       07                 08                09                 10                 11                      12                13                 14                      15               16 ~ 25                26                          27                            28                       29                           30                       31                          32                 33                        34               35                                   36                               37                 38
                 $this->layout_001 .= $this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo . $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item . $this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->campos_16_25 . $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato . $this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep . $this->pis_pasep . $this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial . $this->tipo_isencao_reducao_bc . $this->brancos_5 . $this->item_cod_autenticacao_digital_registro . "\r" . "\n"; // acrescidos de CR/LF (Carriage Return/Line Feed) ao final de cada registro;
@@ -1044,121 +1015,112 @@ class Nfsc_21
 
 
 
-    		## Informações referentes aos dados cadastrais do tomador dos serviços de comunicação/telecomunicação.
-    	    #01 - N - CNPJ ou CPF (14 posicoes)
+            ## Informações referentes aos dados cadastrais do tomador dos serviços de comunicação/telecomunicação.
+            #01 - N - CNPJ ou CPF (14 posicoes)
             if (!empty($valueITEM['@ClientCPF']))
                 $this->cliente_doc = $valueITEM['@ClientCPF'];
             else
                 $this->cliente_doc = $valueITEM['@ClientCNPJ'];
 
-    	    //$this->cliente_doc = $valueITEM['@ClientCPF'] . $valueITEM['@ClientCNPJ']; //"001.001.001-01";
-    	    //$this->cliente_doc = "01.001.001/0001-01";
-    		$this->cliente_doc = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_doc)));
-    		//if (strlen($this->cliente_doc) < 11 or strlen($this->cliente_doc) > 14)
-    		// tratamento: Em se tratando de pessoa não obrigada à inscrição no CNPJ ou CPF, preencher o campo com zeros.
-    		if (strlen($this->cliente_doc) < 1 or strlen($this->cliente_doc) == 11 or strlen($this->cliente_doc) == 14)
-    	    {
-                if (strlen($this->cliente_doc) < 1)
-    	    	{
-    	    		$this->cliente_doc = '00000000000000';
-    	    		$flag_cliente_doc = 1;
-    	    		$flag_tipo_cliente = 3;  // se nao possuir CPF ou CNPJ entao sera tratado como residencial/pessoa fisica
-    	    	}
-    	    	elseif (strlen($this->cliente_doc) == 11)
-    	    	{
+            //$this->cliente_doc = $valueITEM['@ClientCPF'] . $valueITEM['@ClientCNPJ']; //"001.001.001-01";
+            //$this->cliente_doc = "01.001.001/0001-01";
+            $this->cliente_doc = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_doc)));
+            //if (strlen($this->cliente_doc) < 11 or strlen($this->cliente_doc) > 14)
+            // tratamento: Em se tratando de pessoa não obrigada à inscrição no CNPJ ou CPF, preencher o campo com zeros.
+            if (strlen($this->cliente_doc) < 1 or strlen($this->cliente_doc) == 11 or strlen($this->cliente_doc) == 14) {
+                if (strlen($this->cliente_doc) < 1) {
+                    $this->cliente_doc = '00000000000000';
+                    $flag_cliente_doc = 1;
+                    $flag_tipo_cliente = 3;  // se nao possuir CPF ou CNPJ entao sera tratado como residencial/pessoa fisica
+                } elseif (strlen($this->cliente_doc) == 11) {
                     //$this->cliente_doc = '000' . $this->cliente_doc; // primeira tentativa nao funcionou
                     //$this->cliente_doc = sprintf('%014d', $this->cliente_doc);
                     $this->cliente_doc = $this->cliente_doc . '000';
-    	    		$flag_cliente_doc = 1;
-    	    		$flag_tipo_cliente = 3;  // residencial/pessoa fisica
-    	    	}
-                elseif (strlen($this->cliente_doc) == 14)
-    	    	{
+                    $flag_cliente_doc = 1;
+                    $flag_tipo_cliente = 3;  // residencial/pessoa fisica
+                } elseif (strlen($this->cliente_doc) == 14) {
                     $this->cliente_doc = sprintf('%014d', $this->cliente_doc);
-    	    		//$this->cliente_doc = $this->cliente_doc;
-    	    		$flag_cliente_doc = 1;
-    	    		$flag_tipo_cliente = 1;  // comercial
-    	    	}
-    	    	else
+                    //$this->cliente_doc = $this->cliente_doc;
+                    $flag_cliente_doc = 1;
+                    $flag_tipo_cliente = 1;  // comercial
+                } else
                     throw new Exception('O documento do cliente (CPF/CNPJ) precisa conter exatos 14 caracteres para CNPJ ou 11 caracteres para CPF, corrija essa informação no cadastro do cliente no sistema. O arquivo ITEM n&atilde;o pode ser escrito!');
 
                 // vamos converter para um numero inteiro explicitamente fazendo um cast
                 $this->cliente_doc = sprintf('%014d', (int)$this->cliente_doc);
-    	    }
-    	    else
-    	        throw new Exception('O documento do cliente precisa conter exatos 14 caracteres para CNPJ ou 11 caracteres para CPF ou VAZIO para pessoa nao obrigada a inscricao no CPF ou CNPJ, corrija essa informação no cadastro do cliente no sistema. O arquivo ITEM n&atilde;o pode ser escrito!');
+            } else
+                throw new Exception('O documento do cliente precisa conter exatos 14 caracteres para CNPJ ou 11 caracteres para CPF ou VAZIO para pessoa nao obrigada a inscricao no CPF ou CNPJ, corrija essa informação no cadastro do cliente no sistema. O arquivo ITEM n&atilde;o pode ser escrito!');
 
 
-    	    #02 - X - UF (2 posicoes)
-    	    $this->cliente_uf = $valueITEM['@ClientState']; //"SP"; // EX para exterior
-    		//if (strlen($this->cliente_uf) == 0 or strlen($this->cliente_uf) == 1 or empty($this->cliente_uf))
-    		if (strlen($this->cliente_uf) == 2)
-    	    	$this->cliente_uf = $this->cliente_uf;
-    	    else
-    	        throw new Exception('O estado(UF) do cliente precisa ser uma sigla e conter exatos 2 caracteres, corrija essa informação no cadastro do cliente no sistema. O arquivo ITEM n&atilde;o pode ser escrito!');
+            #02 - X - UF (2 posicoes)
+            $this->cliente_uf = $valueITEM['@ClientState']; //"SP"; // EX para exterior
+            //if (strlen($this->cliente_uf) == 0 or strlen($this->cliente_uf) == 1 or empty($this->cliente_uf))
+            if (strlen($this->cliente_uf) == 2)
+                $this->cliente_uf = $this->cliente_uf;
+            else
+                throw new Exception('O estado(UF) do cliente precisa ser uma sigla e conter exatos 2 caracteres, corrija essa informação no cadastro do cliente no sistema. O arquivo ITEM n&atilde;o pode ser escrito!');
 
 
-    	    #03 - N - classe de consumo (1 posicao)
-    	    $this->cliente_classe_consumo = $this->cliente_classe_consumo;
+            #03 - N - classe de consumo (1 posicao)
+            $this->cliente_classe_consumo = $this->cliente_classe_consumo;
 
 
             #04 - N - Fase ou Tipo de Utilização (1 posicao)
             #$this->cliente_tipo_utilizacao = $this->cliente_tipo_utilizacao;
-            if (21 == $modelo) 
-               $this->cliente_tipo_utilizacao = $this->cliente_tipo_utilizacao; // recebe o valor padrao definido para internet (4)
-            elseif (22 == $modelo) 
-               $this->cliente_tipo_utilizacao = $tipo_utilizacao; // $tipo_utilizacao vai ser um parametro opicional e usado apenas quando para notas do modelo 22 de telecomunicacao.
+            if (21 == $modelo)
+                $this->cliente_tipo_utilizacao = $this->cliente_tipo_utilizacao; // recebe o valor padrao definido para internet (4)
+            elseif (22 == $modelo)
+                $this->cliente_tipo_utilizacao = $tipo_utilizacao; // $tipo_utilizacao vai ser um parametro opicional e usado apenas quando para notas do modelo 22 de telecomunicacao.
             else
                 throw new Exception('O modelo da nota fiscal nao pode ser vazio. A propriedade tipo de utilizacao precisa ser numerico e conter exatos 1 caracter, corrija essa informação no parametro da URL. O arquivo MESTRE n&atilde;o pode ser escrito!');
 
 
-    	    #05 - N - Grupo de Tensão  (2 posicoes)
-    	    $this->cliente_grupo_tensao = $this->cliente_grupo_tensao;
+            #05 - N - Grupo de Tensão  (2 posicoes)
+            $this->cliente_grupo_tensao = $this->cliente_grupo_tensao;
 
-    	    #06 - N - Data de Emissão (8 posicoes)
-    	    $this->nf_data_emissao = $data_emissao; //date("Ymd");
+            #06 - N - Data de Emissão (8 posicoes)
+            $this->nf_data_emissao = $data_emissao; //date("Ymd");
 
 
-    	    #07 - N - Modelo (2 posicoes)
-    	    #$this->nf_modelo = $this->nf_modelo;
+            #07 - N - Modelo (2 posicoes)
+            #$this->nf_modelo = $this->nf_modelo;
             $this->nf_modelo = $modelo;
 
-    	    #08 - X - Série  (3 posiceos)
-    	    $this->nf_serie = $this->nf_serie;
+            #08 - X - Série  (3 posiceos)
+            $this->nf_serie = $this->nf_serie;
 
 
             # IMPORTANTE: O numero da NF do item repete para todos os items do mesmo documento fiscal
             # Ex.: NF 000000001 possui item de numero 001, 002, 003 + LINHA DO "OPTANTE SN - ALÍQUOTA.."
             # Apenas incremente o numero da NF quando for um novo documento ou seja quando for gravado o ultimo item do doc. fiscal anterior.
-    	    #09 - N - numero da NF (sequencial) (9 posicoes)
+            #09 - N - numero da NF (sequencial) (9 posicoes)
             # apenas iterar o numero da nota quando o contrato mudar
             if ($valueITEM['@ContractID'] !== $prev_contract_id && $prev_contract_id !== '')
-                $this->nf_numero +=1;
+                $this->nf_numero += 1;
 
-        	$this->nf_numero = sprintf('%09d', $this->nf_numero); # 12 9 posicoes    (usado em ambos arquivos MESTRE e ITEM)  Obs.: a numeração deve ser reiniciada a cada período de apuração.
+            $this->nf_numero = sprintf('%09d', $this->nf_numero); # 12 9 posicoes    (usado em ambos arquivos MESTRE e ITEM)  Obs.: a numeração deve ser reiniciada a cada período de apuração.
 
 
 
-    		## Informações referentes aos itens de prestação de serviços de comunicação/telecomunicação
+            ## Informações referentes aos itens de prestação de serviços de comunicação/telecomunicação
 
-    	    #10 - N - CFOP  (4 posicoes)
-    	    # No loop vai precisar checar o tipo/referencia da fatura para usar o CFOP correto
-    	    # Obs.: Algumas faturas terao cobranca de mora, nesse caso aplicamos o CFOP 08XX
-    	    # 01 ASSINATURA
-    	    #    0104 ASSINATURA DE SERVICO DE PROVIMENTO DE INTERNET
-    	    # 02 HABILITACAO
-    	    #    0204 HABILITACAO DE SERVICO DE PROVIMENTO DE INTERNET
-    	    # 08 COBRANCAS
-    	    #    0804 COBRANCA DE JUROS DE MORA
-    	    #    0805 COBRANCA DE MULTA DE MORA
+            #10 - N - CFOP  (4 posicoes)
+            # No loop vai precisar checar o tipo/referencia da fatura para usar o CFOP correto
+            # Obs.: Algumas faturas terao cobranca de mora, nesse caso aplicamos o CFOP 08XX
+            # 01 ASSINATURA
+            #    0104 ASSINATURA DE SERVICO DE PROVIMENTO DE INTERNET
+            # 02 HABILITACAO
+            #    0204 HABILITACAO DE SERVICO DE PROVIMENTO DE INTERNET
+            # 08 COBRANCAS
+            #    0804 COBRANCA DE JUROS DE MORA
+            #    0805 COBRANCA DE MULTA DE MORA
             //$this->cfop_item = $valueITEM['@CfopCode']; // usamos o CFOP cadastrado no plano ou contrato.
             $this->cfop_item = str_pad($valueITEM['@CfopCode'], 4, '0', STR_PAD_LEFT); // N
 
 
 
             # se o ID do contrato no loop for diferente do anterior entao zeramos o contador, pois isso indica o primeiro item para o prox. documento fiscal.
-            if ($valueITEM['@ContractID'] !== $prev_contract_id && $prev_contract_id !== '')
-            {
+            if ($valueITEM['@ContractID'] !== $prev_contract_id && $prev_contract_id !== '') {
                 # refere-se ao numero de ordem do item
                 $count = 0;
             }
@@ -1166,108 +1128,108 @@ class Nfsc_21
             $prev_contract_id = $valueITEM['@ContractID'];
 
             #11 - N - No de ordem do Item do documento fiscal (3 posicoes) - Limite de 990 items por documento fiscal, deve ser iniciado em 001.
-            $count +=1;
+            $count += 1;
             $this->num_ordem_item = $count;
             $this->num_ordem_item = sprintf('%03d', $this->num_ordem_item); // inicia em 001;
 
 
 
-    	    #12 - X - Código do item (10 posicoes)
-    	    # cod. do plano/servico prestado
-    	    $this->cod_item = $valueITEM['@PlanID']; //35;
-    	    $this->cod_item = str_pad($this->cod_item, 10, " ", STR_PAD_RIGHT);
+            #12 - X - Código do item (10 posicoes)
+            # cod. do plano/servico prestado
+            $this->cod_item = $valueITEM['@PlanID']; //35;
+            $this->cod_item = str_pad($this->cod_item, 10, " ", STR_PAD_RIGHT);
 
 
-    	    #13 - X - Descrição do item (40 posicoes)
-    	    $this->desc_item = substr($valueITEM['@PlanTitle'], 0, 40); //'NOME DO PLANO'; // echo $valueITEM['@PlanTitle'];
-    	    $this->desc_item = str_pad($this->desc_item, 40, " ", STR_PAD_RIGHT);
+            #13 - X - Descrição do item (40 posicoes)
+            $this->desc_item = substr($valueITEM['@PlanTitle'], 0, 40); //'NOME DO PLANO'; // echo $valueITEM['@PlanTitle'];
+            $this->desc_item = str_pad($this->desc_item, 40, " ", STR_PAD_RIGHT);
 
 
-    	    #14 - N - Código de classificação do item (4 posicoes)
-    	    # segue modelo do CFOP #10
-    	    # No loop vai precisar checar o tipo/referencia da fatura para usar o CFOP correto
-    	    # Obs.: Algumas faturas terao cobranca de mora, nesse caso aplicamos o CFOP 08XX
-    	    # 01 ASSINATURA
-    	    #    0104 ASSINATURA DE SERVICO DE PROVIMENTO DE INTERNET
-    	    # 02 HABILITACAO
-    	    #    0204 HABILITACAO DE SERVICO DE PROVIMENTO DE INTERNET
-    	    # 08 COBRANCAS
-    	    #    0804 COBRANCA DE JUROS DE MORA
-    	    #    0805 COBRANCA DE MULTA DE MORA
+            #14 - N - Código de classificação do item (4 posicoes)
+            # segue modelo do CFOP #10
+            # No loop vai precisar checar o tipo/referencia da fatura para usar o CFOP correto
+            # Obs.: Algumas faturas terao cobranca de mora, nesse caso aplicamos o CFOP 08XX
+            # 01 ASSINATURA
+            #    0104 ASSINATURA DE SERVICO DE PROVIMENTO DE INTERNET
+            # 02 HABILITACAO
+            #    0204 HABILITACAO DE SERVICO DE PROVIMENTO DE INTERNET
+            # 08 COBRANCAS
+            #    0804 COBRANCA DE JUROS DE MORA
+            #    0805 COBRANCA DE MULTA DE MORA
             //$this->cod_class_item = $valueITEM['@CfopCode']; // vamos usar o CFOP.
             $this->cod_class_item = str_pad($valueITEM['@CfopCode'], 4, '0', STR_PAD_LEFT); // N
-            
 
 
-    	    #15 - X - Unidade (6 posicoes)
-    	    $this->unidade = ''; //KBPS
-    	    $this->unidade = str_pad($this->unidade, 6, " ", STR_PAD_RIGHT);
+
+            #15 - X - Unidade (6 posicoes)
+            $this->unidade = ''; //KBPS
+            $this->unidade = str_pad($this->unidade, 6, " ", STR_PAD_RIGHT);
 
 
-    	    #16 - N - Quantidade contratada (com 3 decimais) (12 posicoes)
-    	    $this->quantidade_contratada = $this->quantidade_contratada;
-    	    //$this->quantidade_contratada = sprintf('%012d', 0);   $valueITEM['@PlanDownload']
+            #16 - N - Quantidade contratada (com 3 decimais) (12 posicoes)
+            $this->quantidade_contratada = $this->quantidade_contratada;
+            //$this->quantidade_contratada = sprintf('%012d', 0);   $valueITEM['@PlanDownload']
 
 
-    	    #17 - N - Quantidade medida (com 3 decimais)  (12 posicoes)
-    	    $this->quantidade_medida = $this->quantidade_medida;
-    	    //$this->quantidade_medida = sprintf('%012d', 0);
+            #17 - N - Quantidade medida (com 3 decimais)  (12 posicoes)
+            $this->quantidade_medida = $this->quantidade_medida;
+            //$this->quantidade_medida = sprintf('%012d', 0);
 
 
             #18 - Esse campo foi movido logo abaixo do campo #21
 
 
-    	    #19 - N - Desconto / Redutores (com 2 decimais) (11 posicoes)
-    	    $this->descontos_redutores = $this->descontos_redutores;
+            #19 - N - Desconto / Redutores (com 2 decimais) (11 posicoes)
+            $this->descontos_redutores = $this->descontos_redutores;
 
 
-    	    #20 - N - Acréscimos e Despesas Acessórias (com 2 decimais) (11 posicoes)
-    	    $this->acrescimos_despesas_acessorias = $this->acrescimos_despesas_acessorias;
+            #20 - N - Acréscimos e Despesas Acessórias (com 2 decimais) (11 posicoes)
+            $this->acrescimos_despesas_acessorias = $this->acrescimos_despesas_acessorias;
 
 
 
-    	    #21 - N - BC ICMS (com 2 decimais) (11 posicoes)
+            #21 - N - BC ICMS (com 2 decimais) (11 posicoes)
             # Se o ICMS receber valor, entao preencher `$this->bc_icms_item` assim como `$temp_bc_icms_item` com o mesmo valor.
             $this->bc_icms_item = $valueITEM['@PlanAmount']; //$valueITEM['@PlanAmount']; //'0.00'; //'1.01';  // foi trocado de @InvoiceTotal para @PlanAmount
             $temp_bc_icms_item  = $valueITEM['@PlanAmount']; //$valueITEM['@PlanAmount']; //'0.00'; //'1.01';  // foi trocado de @InvoiceTotal para @PlanAmount
             $temp_bc_icms_item  = sprintf("%01.2f", $temp_bc_icms_item);
-    		$this->bc_icms_item = str_replace('.', '', str_replace(',', '', $this->bc_icms_item));
-    	    $this->bc_icms_item = sprintf('%011d', $this->bc_icms_item);
+            $this->bc_icms_item = str_replace('.', '', str_replace(',', '', $this->bc_icms_item));
+            $this->bc_icms_item = sprintf('%011d', $this->bc_icms_item);
             //echo "<br>" . $temp_bc_icms_item;
 
 
 
-    	    #22 - N - ICMS (com 2 decimais) (11 posicoes)
-    	    $this->icms_item = '0.00'; //'1.01';
+            #22 - N - ICMS (com 2 decimais) (11 posicoes)
+            $this->icms_item = '0.00'; //'1.01';
             $this->icms_item  = sprintf("%01.2f", $this->icms_item);
-    		$this->icms_item = str_replace('.', '', str_replace(',', '', $this->icms_item));
-    	    $this->icms_item = sprintf('%011d', $this->icms_item);
+            $this->icms_item = str_replace('.', '', str_replace(',', '', $this->icms_item));
+            $this->icms_item = sprintf('%011d', $this->icms_item);
             //echo "<br>" . $this->icms_item;
 
 
-    	    #23 - N - Operações Isentas ou não tributadas (com 2 decimais) (11 posicoes)
-    	    $this->op_isentas_nao_tributadas = '0.00'; //'1.01';
+            #23 - N - Operações Isentas ou não tributadas (com 2 decimais) (11 posicoes)
+            $this->op_isentas_nao_tributadas = '0.00'; //'1.01';
             $this->op_isentas_nao_tributadas = sprintf("%01.2f", $this->op_isentas_nao_tributadas);
-    		$this->op_isentas_nao_tributadas = str_replace('.', '', str_replace(',', '', $this->op_isentas_nao_tributadas));
-    	    $this->op_isentas_nao_tributadas = sprintf('%011d', $this->op_isentas_nao_tributadas);
+            $this->op_isentas_nao_tributadas = str_replace('.', '', str_replace(',', '', $this->op_isentas_nao_tributadas));
+            $this->op_isentas_nao_tributadas = sprintf('%011d', $this->op_isentas_nao_tributadas);
             //echo "<br>" . $this->op_isentas_nao_tributadas;
 
 
-    	    #24 - N - Outros valores (com 2 decimais) (11 posicoes)
-    	    # aqui deve ser informado as multas e juros (valores que nao compoem a base de calculo do icms)
-    	    $this->outros_valores = '0.00';
+            #24 - N - Outros valores (com 2 decimais) (11 posicoes)
+            # aqui deve ser informado as multas e juros (valores que nao compoem a base de calculo do icms)
+            $this->outros_valores = '0.00';
             $this->outros_valores = sprintf("%01.2f", $this->outros_valores);
-    		$this->outros_valores = str_replace('.', '', str_replace(',', '', $this->outros_valores));
-    	    $this->outros_valores = sprintf('%011d', $this->outros_valores);
+            $this->outros_valores = str_replace('.', '', str_replace(',', '', $this->outros_valores));
+            $this->outros_valores = sprintf('%011d', $this->outros_valores);
             //echo "<br>" . $this->outros_valores;
 
 
-    	    #25 - N - Alíquota do ICMS (com 2 decimais)  (4 posicoes)
-    	    # onde esta esse valor? mantendo ZERO como default.
-    	    $this->aliquota_icms = '01.25'; // valor para SIMPLES NACIONAL Mod.21 - o correto seria consultar o valor do banco de dados.
+            #25 - N - Alíquota do ICMS (com 2 decimais)  (4 posicoes)
+            # onde esta esse valor? mantendo ZERO como default.
+            $this->aliquota_icms = '01.25'; // valor para SIMPLES NACIONAL Mod.21 - o correto seria consultar o valor do banco de dados.
             $this->aliquota_icms = sprintf("%01.2f", $this->aliquota_icms);
-    		$this->aliquota_icms = str_replace('.', '', str_replace(',', '', $this->aliquota_icms));
-    	    $this->aliquota_icms = sprintf('%04d', $this->aliquota_icms);
+            $this->aliquota_icms = str_replace('.', '', str_replace(',', '', $this->aliquota_icms));
+            $this->aliquota_icms = sprintf('%04d', $this->aliquota_icms);
             //echo "<br>" . $this->aliquota_icms;
 
 
@@ -1275,9 +1237,9 @@ class Nfsc_21
 
             #18 - N - valor total - o valor total deve incluir o valor do ICMS (com 2 decimais) (11 posicoes)
             # O Total deve ser igual à soma: BC + Isentas + Outros
-    		# Informações referentes aos valores dos itens de prestação de serviços de comunicação/telecomunicação.
-    	    # para manter 2 decimais.. Ex.: 19|00 ZEROS a direita quando numerico serao truncados, entao transforme o valor
-    	    #  numerico numa string.
+            # Informações referentes aos valores dos itens de prestação de serviços de comunicação/telecomunicação.
+            # para manter 2 decimais.. Ex.: 19|00 ZEROS a direita quando numerico serao truncados, entao transforme o valor
+            #  numerico numa string.
             # foreach abaixo usado para pegar o valor total de todos os items da NF (se precisar)
             /*
             foreach ($response_mestre as $key => $value) {  //print_r($response_mestre);
@@ -1290,8 +1252,8 @@ class Nfsc_21
             $temp_valor_total_item = sprintf("%01.2f", $temp_valor_total_item);
             //echo "<br>" . $temp_valor_total_item;
             $this->valor_total_item = $temp_valor_total_item; //'2.02';  // + campo #21 BC ICMS
-    		$this->valor_total_item = str_replace('.', '', str_replace(',', '', $this->valor_total_item));
-    	    $this->valor_total_item = sprintf('%011d', $this->valor_total_item);
+            $this->valor_total_item = str_replace('.', '', str_replace(',', '', $this->valor_total_item));
+            $this->valor_total_item = sprintf('%011d', $this->valor_total_item);
             //echo "<br>" . $this->valor_total_item;
 
 
@@ -1301,105 +1263,105 @@ class Nfsc_21
 
 
 
-    		# Informações de Controle
+            # Informações de Controle
 
-    	    #26 - X - Situação (1 posicao) -> campo 19 do registro Mestre
-    	    $this->situacao_documento = $this->situacao_documento;
-
-
-    	    #27 - X - Ano e Mês de referência de apuração  (4 posicoes)
-    	    $this->ano_mes_ref_apuracao = $data_apuracao;
+            #26 - X - Situação (1 posicao) -> campo 19 do registro Mestre
+            $this->situacao_documento = $this->situacao_documento;
 
 
-    	    #28 - X - Número do Contrato (15 posicoes)
-    	    $this->numero_contrato = $valueITEM['@ContractID']; //2560;
-    	    $this->numero_contrato = str_pad($this->numero_contrato, 15, " ", STR_PAD_RIGHT);
+            #27 - X - Ano e Mês de referência de apuração  (4 posicoes)
+            $this->ano_mes_ref_apuracao = $data_apuracao;
+
+
+            #28 - X - Número do Contrato (15 posicoes)
+            $this->numero_contrato = $valueITEM['@ContractID']; //2560;
+            $this->numero_contrato = str_pad($this->numero_contrato, 15, " ", STR_PAD_RIGHT);
             //echo "<br>" . $this->numero_contrato;
 
 
-    	    #29 - N - Quantidade faturada (com 3 decimais) (12 posicoes)
-    	    # velocidade do plano de internet em Mbps
+            #29 - N - Quantidade faturada (com 3 decimais) (12 posicoes)
+            # velocidade do plano de internet em Mbps
             //echo "<br>" . $valueITEM['@PlanDownload'];
-    	    $this->quantidade_faturada = $valueITEM['@PlanDownload']; //'1.010';
+            $this->quantidade_faturada = $valueITEM['@PlanDownload']; //'1.010';
             $quantidade_faturada_mbps  = ($this->quantidade_faturada / 1024);
             $this->quantidade_faturada = sprintf("%01.3f", $quantidade_faturada_mbps);
-    		$this->quantidade_faturada = str_replace('.', '', str_replace(',', '', $this->quantidade_faturada));
-    	    $this->quantidade_faturada = sprintf('%012d', $this->quantidade_faturada);
+            $this->quantidade_faturada = str_replace('.', '', str_replace(',', '', $this->quantidade_faturada));
+            $this->quantidade_faturada = sprintf('%012d', $this->quantidade_faturada);
             //echo "<br>" . $this->quantidade_faturada;
 
 
-    	    #30 - N - Tarifa Aplicada / Preço Médio Efetivo (com 6 decimais)  (11 posicoes)
-    	    $this->tarifa_aplicada = $this->tarifa_aplicada;
+            #30 - N - Tarifa Aplicada / Preço Médio Efetivo (com 6 decimais)  (11 posicoes)
+            $this->tarifa_aplicada = $this->tarifa_aplicada;
 
 
-    	    #31 - N - Alíquota PIS/PASEP (com 4 decimais) (6 posicoes)
-    	    $this->aliquota_pis_pasep = '00.0000';
+            #31 - N - Alíquota PIS/PASEP (com 4 decimais) (6 posicoes)
+            $this->aliquota_pis_pasep = '00.0000';
             $this->aliquota_pis_pasep = sprintf("%01.4f", $this->aliquota_pis_pasep);
-    		$this->aliquota_pis_pasep = str_replace('.', '', str_replace(',', '', $this->aliquota_pis_pasep));
-    	    $this->aliquota_pis_pasep = sprintf('%06d', $this->aliquota_pis_pasep);
+            $this->aliquota_pis_pasep = str_replace('.', '', str_replace(',', '', $this->aliquota_pis_pasep));
+            $this->aliquota_pis_pasep = sprintf('%06d', $this->aliquota_pis_pasep);
             //echo "<br>" . $this->aliquota_pis_pasep;
 
 
-    	    #32 - N - PIS/PASEP (com 2 decimais) (11 posicoes)
-    	    $this->pis_pasep = '0.00'; //'1.01';
+            #32 - N - PIS/PASEP (com 2 decimais) (11 posicoes)
+            $this->pis_pasep = '0.00'; //'1.01';
             $this->pis_pasep = sprintf("%01.2f", $this->pis_pasep);
-    		$this->pis_pasep = str_replace('.', '', str_replace(',', '', $this->pis_pasep));
-    	    $this->pis_pasep = sprintf('%011d', $this->pis_pasep);
+            $this->pis_pasep = str_replace('.', '', str_replace(',', '', $this->pis_pasep));
+            $this->pis_pasep = sprintf('%011d', $this->pis_pasep);
             //echo "<br>" . $this->pis_pasep;
 
 
-    	    #33 - N - Alíquota COFINS (com 4 decimais)  (6 posicoes)
-    	    $this->aliquota_confins = '0.0000'; //'1.0100';
+            #33 - N - Alíquota COFINS (com 4 decimais)  (6 posicoes)
+            $this->aliquota_confins = '0.0000'; //'1.0100';
             $this->aliquota_confins = sprintf("%01.4f", $this->aliquota_confins);
-    		$this->aliquota_confins = str_replace('.', '', str_replace(',', '', $this->aliquota_confins));
-    	    $this->aliquota_confins = sprintf('%06d', $this->aliquota_confins);
+            $this->aliquota_confins = str_replace('.', '', str_replace(',', '', $this->aliquota_confins));
+            $this->aliquota_confins = sprintf('%06d', $this->aliquota_confins);
             //echo "<br>" . $this->aliquota_confins;
 
 
-    	    #34 - N - COFINS (com 2 decimais)  (11 posicoes)
-    	    $this->confins = '0.00'; //'1.01';
+            #34 - N - COFINS (com 2 decimais)  (11 posicoes)
+            $this->confins = '0.00'; //'1.01';
             $this->confins = sprintf("%01.2f", $this->confins);
-    		$this->confins = str_replace('.', '', str_replace(',', '', $this->confins));
-    	    $this->confins = sprintf('%011d', $this->confins);
+            $this->confins = str_replace('.', '', str_replace(',', '', $this->confins));
+            $this->confins = sprintf('%011d', $this->confins);
             //echo "<br>" . $this->confins;
 
 
 
-    	    #35 - X - Indicador de Desconto Judicial (1 posicao)
-    	    $this->indicador_desconto_judicial = '';
-    	    $this->indicador_desconto_judicial = str_pad($this->indicador_desconto_judicial, 1, " ", STR_PAD_RIGHT);
+            #35 - X - Indicador de Desconto Judicial (1 posicao)
+            $this->indicador_desconto_judicial = '';
+            $this->indicador_desconto_judicial = str_pad($this->indicador_desconto_judicial, 1, " ", STR_PAD_RIGHT);
 
 
-    	    #36 - N - Tipo de Isenção/Redução de Base de Cálculo  (2 posicoes)
-    	    $this->tipo_isencao_reducao_bc = $this->tipo_isencao_reducao_bc;
+            #36 - N - Tipo de Isenção/Redução de Base de Cálculo  (2 posicoes)
+            $this->tipo_isencao_reducao_bc = $this->tipo_isencao_reducao_bc;
 
 
-    	    #37 - X - Brancos - reservado para uso futuro (5 posicoes)
-    	    $this->brancos_5 = '';
-    	    $this->brancos_5 = str_pad($this->brancos_5, 5, " ", STR_PAD_RIGHT);
+            #37 - X - Brancos - reservado para uso futuro (5 posicoes)
+            $this->brancos_5 = '';
+            $this->brancos_5 = str_pad($this->brancos_5, 5, " ", STR_PAD_RIGHT);
 
 
-    	    #38 - X - Código de Autenticação Digital do registro MD5(campos 01 a 37) (32 posicoes)
-    	    $this->item_cod_autenticacao_digital_registro = md5(
-    	    	$this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo .
-    	    	$this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao .
-    	    	$this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item .
-    	    	$this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->quantidade_contratada .
-    	    	$this->quantidade_medida . $this->valor_total_item . $this->descontos_redutores . $this->acrescimos_despesas_acessorias .
-    	    	$this->bc_icms_item . $this->icms_item . $this->op_isentas_nao_tributadas . $this->outros_valores .
-    	    	$this->aliquota_icms . $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato .
-    	    	$this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep . $this->pis_pasep .
-    	    	$this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial .
-    	    	$this->tipo_isencao_reducao_bc . $this->brancos_5
-    	    );
+            #38 - X - Código de Autenticação Digital do registro MD5(campos 01 a 37) (32 posicoes)
+            $this->item_cod_autenticacao_digital_registro = md5(
+                $this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo .
+                    $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao .
+                    $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item .
+                    $this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->quantidade_contratada .
+                    $this->quantidade_medida . $this->valor_total_item . $this->descontos_redutores . $this->acrescimos_despesas_acessorias .
+                    $this->bc_icms_item . $this->icms_item . $this->op_isentas_nao_tributadas . $this->outros_valores .
+                    $this->aliquota_icms . $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato .
+                    $this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep . $this->pis_pasep .
+                    $this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial .
+                    $this->tipo_isencao_reducao_bc . $this->brancos_5
+            );
 
-    	    ################## ################################################################ ################
+            ################## ################################################################ ################
 
 
-        	# filename { UF   CNPJ   Modelo   Serie   Ano   Mes   Status   Tipo   Volume(inicia em 001) }
+            # filename { UF   CNPJ   Modelo   Serie   Ano   Mes   Status   Tipo   Volume(inicia em 001) }
             // $this->file_001    = $dados_empresa['0']['estado'] . $cnpj . $this->nf_modelo . $this->nf_serie . date("ym") . 'N01I.001';
             $this->file_001    = $dados_empresa['0']['estado'] . $cnpj . $this->nf_modelo . $this->nf_serie . $data_apuracao . 'N01I.001';
-        	$this->layout_001 .= $this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo . $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item . $this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->quantidade_contratada . $this->quantidade_medida . $this->valor_total_item . $this->descontos_redutores . $this->acrescimos_despesas_acessorias . $this->bc_icms_item . $this->icms_item . $this->op_isentas_nao_tributadas . $this->outros_valores . $this->aliquota_icms . $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato . $this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep . $this->pis_pasep . $this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial . $this->tipo_isencao_reducao_bc . $this->brancos_5 . $this->item_cod_autenticacao_digital_registro . "\r" . "\n"; // acrescidos de CR/LF (Carriage Return/Line Feed) ao final de cada registro;
+            $this->layout_001 .= $this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo . $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item . $this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->quantidade_contratada . $this->quantidade_medida . $this->valor_total_item . $this->descontos_redutores . $this->acrescimos_despesas_acessorias . $this->bc_icms_item . $this->icms_item . $this->op_isentas_nao_tributadas . $this->outros_valores . $this->aliquota_icms . $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato . $this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep . $this->pis_pasep . $this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial . $this->tipo_isencao_reducao_bc . $this->brancos_5 . $this->item_cod_autenticacao_digital_registro . "\r" . "\n"; // acrescidos de CR/LF (Carriage Return/Line Feed) ao final de cada registro;
 
 
             # GRAVA DADOS DO ARQUIVO ITEM 001 NO BANCO (tabela: `Nfsc_21_Item`) USANDO OS DADOS DO LAYOUT. (@update: 20190227)
@@ -1407,62 +1369,63 @@ class Nfsc_21
             $this->exec('INSERT INTO "' . $table . '" (' . implode(', ', $columns) . ') VALUES (' . implode($values, ', ') . ')');
             */
             $setNfsDadosItem[] = [
-                'id'=>NULL, 
-                'documento'=>$this->cliente_doc, 
-                'uf'=>$this->cliente_uf, 
-                'classe_consumo'=>$this->cliente_classe_consumo, 
-                'tipo_utilizacao'=>$this->cliente_tipo_utilizacao, 
-                'grupo_tensao'=>$this->cliente_grupo_tensao, 
-                'data_emissao'=>$this->nf_data_emissao, 
-                'modelo'=>$this->nf_modelo, 
-                'serie'=>$this->nf_serie, 
-                'numero'=>$this->nf_numero, 
-                'cfop'=>$this->cfop_item, 
-                'ordem_item'=>$this->num_ordem_item, 
-                'codigo_item'=>$this->cod_item, 
-                'descricao_item'=>$this->desc_item, 
-                'codigo_class_item'=>$this->cod_class_item, 
-                'unidade'=>$this->unidade, 
-                'quantidade_contratada'=>$this->quantidade_contratada, 
-                'bc_icms'=>$this->bc_icms_item, 
-                'total'=>$this->valor_total_item, 
-                'acrescimos_despesas_acessorias'=>$this->acrescimos_despesas_acessorias, 
-                'icms'=>$this->icms_item, 
-                'quantidade_medida'=>$this->quantidade_medida, 
-                'aliquota_icms'=>$this->aliquota_icms, 
-                'ano_mes_ref_apuracao'=>$this->ano_mes_ref_apuracao, 
-                'isentas_nao_tributadas'=>$this->op_isentas_nao_tributadas, 
-                'outros_valores'=>$this->outros_valores, 
-                'descontos'=>$this->descontos_redutores, 
-                'situacao'=>$this->situacao_documento, 
-                'quantidade_faturada'=>$this->quantidade_faturada, 
-                'cofins'=>$this->confins, 
-                'tarifa_aplicada'=>$this->tarifa_aplicada, 
-                'aliquota_cofins'=>$this->aliquota_confins, 
-                'pis_pasep'=>$this->pis_pasep, 
-                'aliquota_pis_pasep'=>$this->aliquota_pis_pasep, 
-                'tipo_isencao'=>$this->tipo_isencao_reducao_bc, 
-                'numero_contrato'=>$this->numero_contrato, 
-                'brancos_5'=>$this->brancos_5, 
-                'hash_registro'=>$this->item_cod_autenticacao_digital_registro, 
-                'desconto_judicial'=>$this->indicador_desconto_judicial,
+                'id' => NULL,
+                'documento' => $this->cliente_doc,
+                'uf' => $this->cliente_uf,
+                'classe_consumo' => $this->cliente_classe_consumo,
+                'tipo_utilizacao' => $this->cliente_tipo_utilizacao,
+                'grupo_tensao' => $this->cliente_grupo_tensao,
+                'data_emissao' => $this->nf_data_emissao,
+                'modelo' => $this->nf_modelo,
+                'serie' => $this->nf_serie,
+                'numero' => $this->nf_numero,
+                'cfop' => $this->cfop_item,
+                'ordem_item' => $this->num_ordem_item,
+                'codigo_item' => $this->cod_item,
+                'descricao_item' => $this->desc_item,
+                'codigo_class_item' => $this->cod_class_item,
+                'unidade' => $this->unidade,
+                'quantidade_contratada' => $this->quantidade_contratada,
+                'bc_icms' => $this->bc_icms_item,
+                'total' => $this->valor_total_item,
+                'acrescimos_despesas_acessorias' => $this->acrescimos_despesas_acessorias,
+                'icms' => $this->icms_item,
+                'quantidade_medida' => $this->quantidade_medida,
+                'aliquota_icms' => $this->aliquota_icms,
+                'ano_mes_ref_apuracao' => $this->ano_mes_ref_apuracao,
+                'isentas_nao_tributadas' => $this->op_isentas_nao_tributadas,
+                'outros_valores' => $this->outros_valores,
+                'descontos' => $this->descontos_redutores,
+                'situacao' => $this->situacao_documento,
+                'quantidade_faturada' => $this->quantidade_faturada,
+                'cofins' => $this->confins,
+                'tarifa_aplicada' => $this->tarifa_aplicada,
+                'aliquota_cofins' => $this->aliquota_confins,
+                'pis_pasep' => $this->pis_pasep,
+                'aliquota_pis_pasep' => $this->aliquota_pis_pasep,
+                'tipo_isencao' => $this->tipo_isencao_reducao_bc,
+                'numero_contrato' => $this->numero_contrato,
+                'brancos_5' => $this->brancos_5,
+                'hash_registro' => $this->item_cod_autenticacao_digital_registro,
+                'desconto_judicial' => $this->indicador_desconto_judicial,
             ];
-
         } // end foreach here
 
 
         # IMPORTANTE: precisa gravar essa linha apos o ultimo item do documento fiscal.
         # Obs.: precisa gravar uma ultima vez (1x apenas, fora do loop).
-        $this->num_ordem_item +=1;
-        $this->num_ordem_item = sprintf('%03d', $this->num_ordem_item); // inicia em 001;
+        //echo  gettype((int)$this->num_ordem_item);
+        //echo gettype($this->num_ordem_item);
+        $this->num_ordem_item += 1;
+        $this->num_ordem_item = sprintf("%03d", $this->num_ordem_item);
         /******************************************************************************************
-        * No caso de empresa optante pelo Simples Nacional, deverá ser criado um registro de item adicional para cada
-        * documento fiscal, devendo constar, no campo 13 (Descrição do serviço ou fornecimento), a expressão
-        * "OPTANTE SN - ALIQUOTA NN, NN", onde "NN, NN" corresponderá à alíquota de ICMS em que o optante estiver
-        * enquadrado no período de apuração, expressa com duas casas decimais. Os campos 10 e 14 devem utilizar os valores
-        * utilizados para a operação ou prestação principal. Os campos 16 a 25 deverão ser preenchidos com zeros
-        * (vide item 11.10 Anexo I);
-        */
+         * No caso de empresa optante pelo Simples Nacional, deverá ser criado um registro de item adicional para cada
+         * documento fiscal, devendo constar, no campo 13 (Descrição do serviço ou fornecimento), a expressão
+         * "OPTANTE SN - ALIQUOTA NN, NN", onde "NN, NN" corresponderá à alíquota de ICMS em que o optante estiver
+         * enquadrado no período de apuração, expressa com duas casas decimais. Os campos 10 e 14 devem utilizar os valores
+         * utilizados para a operação ou prestação principal. Os campos 16 a 25 deverão ser preenchidos com zeros
+         * (vide item 11.10 Anexo I);
+         */
         #13 - X - Descrição do item (40 posicoes)
         //$this->desc_item = "OPTANTE SN - ALÍQUOTA " . $this->aliquota_icms; // "OPTANTE SN - ALÍQUOTA NN, NN";
         $this->desc_item = "OPTANTE SN - ALIQUOTA " . $this->aliquota_icms; // "OPTANTE SN - ALÍQUOTA NN, NN";
@@ -1478,13 +1441,13 @@ class Nfsc_21
         #38 - X - Código de Autenticação Digital do registro MD5(campos 01 a 37) (32 posicoes)
         $this->item_cod_autenticacao_digital_registro = md5(
             $this->cliente_doc . $this->cliente_uf . $this->cliente_classe_consumo .
-            $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao .
-            $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item .
-            $this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->campos_16_25 .
-            $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato .
-            $this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep .
-            $this->pis_pasep . $this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial .
-            $this->tipo_isencao_reducao_bc . $this->brancos_5
+                $this->cliente_tipo_utilizacao . $this->cliente_grupo_tensao . $this->nf_data_emissao .
+                $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->cfop_item . $this->num_ordem_item .
+                $this->cod_item . $this->desc_item . $this->cod_class_item . $this->unidade . $this->campos_16_25 .
+                $this->situacao_documento . $this->ano_mes_ref_apuracao . $this->numero_contrato .
+                $this->quantidade_faturada . $this->tarifa_aplicada . $this->aliquota_pis_pasep .
+                $this->pis_pasep . $this->aliquota_confins . $this->confins . $this->indicador_desconto_judicial .
+                $this->tipo_isencao_reducao_bc . $this->brancos_5
         );
 
         //                   01                   02                  03                              04                               05                            06                       07                 08                09                 10                 11                      12                13                 14                      15               16 ~ 25                26                          27                            28                       29                           30                       31                          32                 33                        34               35                                   36                               37                 38
@@ -1493,9 +1456,9 @@ class Nfsc_21
 
 
         # GRAVA DADOS DO ARQUIVO ITEM 001 NO BANCO (tabela: `Nfsc_21_Item`) USANDO OS DADOS DO LAYOUT. (@update: 20190227)
-        if (!empty($setNfsDadosItem)) 
+        if (!empty($setNfsDadosItem))
             $setNfsItem = $database->insert("Nfsc_21_Item", $setNfsDadosItem);
-   
+
         //var_dump( $database->error() );
 
 
@@ -1551,208 +1514,199 @@ class Nfsc_21
         */
 
 
-    	# layout display
-    	//print "<pre>"; print $this->layout_001; print "</pre>";
+        # layout display
+        //print "<pre>"; print $this->layout_001; print "</pre>";
 
 
-		# GRAVA ARQUIVO ITEM 001
-	    if (!@file_put_contents('Files/001/'.$this->file_001, $this->layout_001, LOCK_EX))
-	        throw new Exception('O arquivo <b>'.$this->file_001.'</b> n&atilde;o pode ser escrito!');
-	    else
-        {
+        # GRAVA ARQUIVO ITEM 001
+        if (!@file_put_contents('Files/001/' . $this->file_001, $this->layout_001, LOCK_EX))
+            throw new Exception('O arquivo <b>' . $this->file_001 . '</b> n&atilde;o pode ser escrito!');
+        else {
             // grava nome e data do arquivo que foi gerado na tabela: `Nfsc_21_NF_Regencia`
             // caso array contenha dados.
-            if (!empty($setNfsDadosItem)) 
-            {
+            if (!empty($setNfsDadosItem)) {
                 $setNfsItemRegencia = $database->insert("Nfsc_21_NF_Regencia", [
-                    "data_gerado" => date('Y-m-d H:i:s'), 
+                    "data_gerado" => date('Y-m-d H:i:s'),
                     "arquivo" => $this->file_001
                 ]);
             }
-	    	return '<pre>O arquivo <b>`'.$this->file_001.'`</b> foi escrito com sucesso!</pre>';
+            return '<pre>O arquivo <b>`' . $this->file_001 . '`</b> foi escrito com sucesso!</pre>';
         }
-
     }
 
 
 
     /*******************************************************************************************************************
-    * CADASTRO DE DOCUMENTO FISCAL
-    * Usamos o mesmo array com os dados do arquivo MESTRE.
-    *******************************************************************************************************************/
+     * CADASTRO DE DOCUMENTO FISCAL
+     * Usamos o mesmo array com os dados do arquivo MESTRE.
+     *******************************************************************************************************************/
     //public function Cadastro($nf_numero, $nf_ref_item, $data_apuracao, $data_emissao, $dados_empresa, $database)
     public function Cadastro($arrayMESTRE, $nf_numero, $nf_ref_item, $data_apuracao, $data_emissao, $dados_empresa, $modelo, $database)
     {
-    	$this->layout_001   = '';
-    	$nf_referencia_item = sprintf('%09d', $nf_ref_item);  # 21   melhor usar sprintf() ao invez de str_pad(111, 9, "0", STR_PAD_LEFT);
+        $this->layout_001   = '';
+        $nf_referencia_item = sprintf('%09d', $nf_ref_item);  # 21   melhor usar sprintf() ao invez de str_pad(111, 9, "0", STR_PAD_LEFT);
 
 
-    	# tratar cnpj da empresa
-		$cnpj = str_replace('.', '', str_replace('/', '', str_replace('-', '', $dados_empresa['0']['cnpj'])));
-		if (strlen($cnpj) != 14)
-	        throw new Exception('O CNPJ da empresa precisa conter exatos 14 caracteres, corrija essa informação no cadastro de empresa do sistema. O arquivo CADASTRO n&atilde;o pode ser escrito!');
+        # tratar cnpj da empresa
+        $cnpj = str_replace('.', '', str_replace('/', '', str_replace('-', '', $dados_empresa['0']['cnpj'])));
+        if (strlen($cnpj) != 14)
+            throw new Exception('O CNPJ da empresa precisa conter exatos 14 caracteres, corrija essa informação no cadastro de empresa do sistema. O arquivo CADASTRO n&atilde;o pode ser escrito!');
 
 
         // inicia a sequencia da nota
         $this->nf_numero = $nf_numero;
 
-	    ################## daqui para baixo precisa validar tudo dentro do LOOP da consulta ################
-        foreach((array) $arrayMESTRE as $valueMESTRE)
-        {
+        ################## daqui para baixo precisa validar tudo dentro do LOOP da consulta ################
+        
+        foreach ((array) $arrayMESTRE as $valueMESTRE) {
             # consutla a tabela de municipios do IBGE - aqui precisamos do nome da cidae e do codigo da cidade.
-            $dados_tb_municipios_ibge = $database->select("tb_municipios_ibge", "*", array("cod_mun[=]" => $valueMESTRE['@ClientCity']));
+            $pdo = new PDO("mysql:dbname=mydb;host=localhost", "root", "");
+            $dados = $pdo->prepare("SELECT * FROM  tb_municipios_ibge where cod_mun = 3552205 ");
 
+            $dados->execute();
+            //$dados_tb_municipios_ibge = $database->select("tb_municipios_ibge", "*", array("cod_mun[=]" => $valueMESTRE['@ClientCity']));
+            //echo $valueMESTRE['@ClientCity'];
+            $dados_tb_municipios_ibge = $dados->fetchAll(PDO::FETCH_ASSOC);
+
+            //print_r($dados_tb_municipios_ibge);
 
             #01 - N - tratar documento(cpf/cnpj) cliente
             if (!empty($valueMESTRE['@ClientCPF'])) {
                 $this->cliente_doc = $valueMESTRE['@ClientCPF'];
                 $cliente_documento[] = $valueMESTRE['@ClientCPF'];
-            }
-            else {
+            } else {
                 $this->cliente_doc = $valueMESTRE['@ClientCNPJ'];
                 $cliente_documento[] = $valueMESTRE['@ClientCNPJ'];
             }
 
-    	    //$this->cliente_doc = "00.000.000/0001-00";
-    		$this->cliente_doc = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_doc)));
-    		//if (strlen($this->cliente_doc) < 11 or strlen($this->cliente_doc) > 14)
-    		// tratamento: Em se tratando de pessoa não obrigada à inscrição no CNPJ ou CPF, preencher o campo com zeros.
-    		if (strlen($this->cliente_doc) < 1 or strlen($this->cliente_doc) == 11 or strlen($this->cliente_doc) == 14)
-    	    {
-                if (strlen($this->cliente_doc) < 1)
-    	    	{
-    	    		$this->cliente_doc = '00000000000000';
-    	    		$flag_cliente_doc = 1;
-    	    		$flag_tipo_cliente = 3;  // se nao possuir CPF ou CNPJ entao sera tratado como residencial/pessoa fisica
-    	    	}
-    	    	elseif (strlen($this->cliente_doc) == 11)
-    	    	{
+            //$this->cliente_doc = "00.000.000/0001-00";
+            $this->cliente_doc = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_doc)));
+            //if (strlen($this->cliente_doc) < 11 or strlen($this->cliente_doc) > 14)
+            // tratamento: Em se tratando de pessoa não obrigada à inscrição no CNPJ ou CPF, preencher o campo com zeros.
+            if (strlen($this->cliente_doc) < 1 or strlen($this->cliente_doc) == 11 or strlen($this->cliente_doc) == 14) {
+                if (strlen($this->cliente_doc) < 1) {
+                    $this->cliente_doc = '00000000000000';
+                    $flag_cliente_doc = 1;
+                    $flag_tipo_cliente = 3;  // se nao possuir CPF ou CNPJ entao sera tratado como residencial/pessoa fisica
+                } elseif (strlen($this->cliente_doc) == 11) {
                     //$this->cliente_doc = '000' . $this->cliente_doc; // primeira tentativa nao funcionou
                     //$this->cliente_doc = sprintf('%014d', $this->cliente_doc);
                     $this->cliente_doc = $this->cliente_doc . '000';
-    	    		$flag_cliente_doc = 1;
-    	    		$flag_tipo_cliente = 3;  // residencial/pessoa fisica
-    	    	}
-                elseif (strlen($this->cliente_doc) == 14)
-    	    	{
+                    $flag_cliente_doc = 1;
+                    $flag_tipo_cliente = 3;  // residencial/pessoa fisica
+                } elseif (strlen($this->cliente_doc) == 14) {
                     $this->cliente_doc = sprintf('%014d', $this->cliente_doc);
-    	    		//$this->cliente_doc = $this->cliente_doc;
-    	    		$flag_cliente_doc = 1;
-    	    		$flag_tipo_cliente = 1;  // comercial
-    	    	}
-    	    	else
+                    //$this->cliente_doc = $this->cliente_doc;
+                    $flag_cliente_doc = 1;
+                    $flag_tipo_cliente = 1;  // comercial
+                } else
                     throw new Exception('O documento do cliente (CPF/CNPJ) precisa conter exatos 14 caracteres para CNPJ ou 11 caracteres para CPF, corrija essa informação no cadastro do cliente no sistema. O arquivo CADASTRO n&atilde;o pode ser escrito!');
 
                 // vamos converter para um numero inteiro explicitamente fazendo um cast
                 $this->cliente_doc = sprintf('%014d', (int)$this->cliente_doc);
-    	    }
-    	    else
-    	        throw new Exception('O documento do cliente precisa conter exatos 14 caracteres para CNPJ ou 11 caracteres para CPF ou VAZIO para pessoa nao obrigada a inscricao no CPF ou CNPJ, corrija essa informação no cadastro do cliente no sistema. O arquivo CADASTRO n&atilde;o pode ser escrito!');
+            } else
+                throw new Exception('O documento do cliente precisa conter exatos 14 caracteres para CNPJ ou 11 caracteres para CPF ou VAZIO para pessoa nao obrigada a inscricao no CPF ou CNPJ, corrija essa informação no cadastro do cliente no sistema. O arquivo CADASTRO n&atilde;o pode ser escrito!');
 
-    	    #02 - X - tratar IE cliente - ausencia da informacao preencher com ISENTO seguido de posicoes em branco
-    	    //$this->cliente_ie = "231.135.384";
-    	    $this->cliente_ie = "00009043528537";
-    	    $this->cliente_ie = $valueMESTRE['@ClientIE']; //"00000000000000";
+            #02 - X - tratar IE cliente - ausencia da informacao preencher com ISENTO seguido de posicoes em branco
+            //$this->cliente_ie = "231.135.384";
+            $this->cliente_ie = "00009043528537";
+            $this->cliente_ie = $valueMESTRE['@ClientIE']; //"00000000000000";
 
-    		$this->cliente_ie = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_ie)));
-    		if ($this->cliente_ie['0'] == 0)
-    		{
-    			if ($this->cliente_ie == '00000000000000')
-    				$temp_cliente_ie = str_pad("ISENTO", 14, " ", STR_PAD_RIGHT);  //$temp_cliente_ie = "ISENTO        ";
-    			else
-    			{
-    				$temp_cliente_ie = substr($this->cliente_ie, 1); // remove o primeiro caracter se for ZERO
-    				for ($a=0;$a<5;$a++)
-    				{
-    					if ($temp_cliente_ie[$a] == 0)
-    						$temp_cliente_ie = substr($temp_cliente_ie, 1); // remove o primeiro caracter se for ZERO
-    				}
-    			}
-    			$this->cliente_ie = $temp_cliente_ie;
-    		}
-    		else
-    			$this->cliente_ie = $this->cliente_ie;
+            $this->cliente_ie = str_replace('.', '', str_replace('/', '', str_replace('-', '', $this->cliente_ie)));
+            if ($this->cliente_ie['0'] == 0) {
+                if ($this->cliente_ie == '00000000000000')
+                    $temp_cliente_ie = str_pad("ISENTO", 14, " ", STR_PAD_RIGHT);  //$temp_cliente_ie = "ISENTO        ";
+                else {
+                    $temp_cliente_ie = substr($this->cliente_ie, 1); // remove o primeiro caracter se for ZERO
+                    for ($a = 0; $a < 5; $a++) {
+                        if ($temp_cliente_ie[$a] == 0)
+                            $temp_cliente_ie = substr($temp_cliente_ie, 1); // remove o primeiro caracter se for ZERO
+                    }
+                }
+                $this->cliente_ie = $temp_cliente_ie;
+            } else
+                $this->cliente_ie = $this->cliente_ie;
 
-    		$this->cliente_ie = str_pad($this->cliente_ie, 14, " ", STR_PAD_RIGHT);
+            $this->cliente_ie = str_pad($this->cliente_ie, 14, " ", STR_PAD_RIGHT);
 
 
-    	    #03 - X - razao social
-    		$this->cliente_razao_social = $valueMESTRE['@ClientName']; //"João Félix Açorês";
-    		// se o arquivo foi salvo com o encoding UTF-8 usar a funcao utf8_decode() para decodificar, caso contrario nao havera necessidade do uso da funcao.
-    		//$this->cliente_razao_social = strtr($this->cliente_razao_social, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
-    		$this->cliente_razao_social = strtr($this->cliente_razao_social, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+            #03 - X - razao social
+            $this->cliente_razao_social = $valueMESTRE['@ClientName']; //"João Félix Açorês";
+            // se o arquivo foi salvo com o encoding UTF-8 usar a funcao utf8_decode() para decodificar, caso contrario nao havera necessidade do uso da funcao.
+            //$this->cliente_razao_social = strtr($this->cliente_razao_social, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+            $this->cliente_razao_social = strtr($this->cliente_razao_social, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
             if (strlen($this->cliente_razao_social) >= 35)
-            	$this->cliente_razao_social = mb_strimwidth($this->cliente_razao_social, 0, 35);
+                $this->cliente_razao_social = mb_strimwidth($this->cliente_razao_social, 0, 35);
             elseif (strlen($this->cliente_razao_social) < 35)
-            	$this->cliente_razao_social = str_pad($this->cliente_razao_social, 35);
+                $this->cliente_razao_social = str_pad($this->cliente_razao_social, 35);
             else
-            	$this->cliente_razao_social = $this->cliente_razao_social;
+                $this->cliente_razao_social = $this->cliente_razao_social;
 
-            if (!ctype_upper($this->cliente_razao_social)) 
+            if (!ctype_upper($this->cliente_razao_social))
                 $this->cliente_razao_social = mb_strtoupper($this->cliente_razao_social);
 
 
             #04 - X - Logradouro (45 posicoes)
             $this->cliente_end_logradouro = $valueMESTRE['@ClientAddress']; //"Rua João Félix Açorês";
-    		// se o arquivo foi salvo com o encoding UTF-8 usar a funcao utf8_decode() para decodificar, caso contrario nao havera necessidade do uso da funcao.
-    		//$this->cliente_end_logradouro = strtr($this->cliente_razao_social, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
-    		$this->cliente_end_logradouro = strtr($this->cliente_end_logradouro, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+            // se o arquivo foi salvo com o encoding UTF-8 usar a funcao utf8_decode() para decodificar, caso contrario nao havera necessidade do uso da funcao.
+            //$this->cliente_end_logradouro = strtr($this->cliente_razao_social, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+            $this->cliente_end_logradouro = strtr($this->cliente_end_logradouro, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
             if (strlen($this->cliente_end_logradouro) >= 45)
-            	$this->cliente_end_logradouro = mb_strimwidth($this->cliente_end_logradouro, 0, 45);
+                $this->cliente_end_logradouro = mb_strimwidth($this->cliente_end_logradouro, 0, 45);
             elseif (strlen($this->cliente_end_logradouro) < 45)
-            	$this->cliente_end_logradouro = str_pad($this->cliente_end_logradouro, 45);
+                $this->cliente_end_logradouro = str_pad($this->cliente_end_logradouro, 45);
             else
-            	$this->cliente_end_logradouro = $this->cliente_end_logradouro;
+                $this->cliente_end_logradouro = $this->cliente_end_logradouro;
 
-            if (!ctype_upper($this->cliente_end_logradouro)) 
+            if (!ctype_upper($this->cliente_end_logradouro))
                 $this->cliente_end_logradouro = mb_strtoupper($this->cliente_end_logradouro);
 
 
             #05 - N - Numero (5 posicoes)
             $this->cliente_end_numero = $valueMESTRE['@ClientAddressNumber']; //'8059';
-    		$this->cliente_end_numero = str_replace('.', '', str_replace('-', '', $this->cliente_end_numero));
-    	    $this->cliente_end_numero = sprintf('%05d', $this->cliente_end_numero);
+            $this->cliente_end_numero = str_replace('.', '', str_replace('-', '', $this->cliente_end_numero));
+            $this->cliente_end_numero = sprintf('%05d', $this->cliente_end_numero);
             if (strlen($this->cliente_end_numero) > 5)
                 throw new Exception('O numero do endereço do cliente precisa conter no máximo 5 posições. O arquivo CADASTRO não pode ser escrito!');
 
 
             #06 - X - complemento (15 posicoes)
             $this->cliente_end_complemento = trim($valueMESTRE['@ClientAddressComp']); //"Salão Félix Açurês";
-    		// se o arquivo foi salvo com o encoding UTF-8 usar a funcao utf8_decode() para decodificar, caso contrario nao havera necessidade do uso da funcao.
-    		//$this->cliente_end_complemento = strtr($this->cliente_end_complemento, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
-    		$this->cliente_end_complemento = strtr($this->cliente_end_complemento, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+            // se o arquivo foi salvo com o encoding UTF-8 usar a funcao utf8_decode() para decodificar, caso contrario nao havera necessidade do uso da funcao.
+            //$this->cliente_end_complemento = strtr($this->cliente_end_complemento, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+            $this->cliente_end_complemento = strtr($this->cliente_end_complemento, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
             if (strlen($this->cliente_end_complemento) >= 15)
-            	$this->cliente_end_complemento = mb_strimwidth($this->cliente_end_complemento, 0, 15);
+                $this->cliente_end_complemento = mb_strimwidth($this->cliente_end_complemento, 0, 15);
             elseif (strlen($this->cliente_end_complemento) < 15)
-            	$this->cliente_end_complemento = str_pad($this->cliente_end_complemento, 15);
+                $this->cliente_end_complemento = str_pad($this->cliente_end_complemento, 15);
             else
-            	$this->cliente_end_complemento = $this->cliente_end_complemento;
+                $this->cliente_end_complemento = $this->cliente_end_complemento;
 
-            if (!ctype_upper($this->cliente_end_complemento)) 
+            if (!ctype_upper($this->cliente_end_complemento))
                 $this->cliente_end_complemento = mb_strtoupper($this->cliente_end_complemento);
 
 
             #07 - N - CEP (8 posicoes)
             $this->cliente_end_cep = $valueMESTRE['@ClientAddressZipcode']; //'18460-000';
-    		$this->cliente_end_cep = str_replace('.', '', str_replace('-', '', $this->cliente_end_cep));
-    	    $this->cliente_end_cep = sprintf('%08d', $this->cliente_end_cep);
+            $this->cliente_end_cep = str_replace('.', '', str_replace('-', '', $this->cliente_end_cep));
+            $this->cliente_end_cep = sprintf('%08d', $this->cliente_end_cep);
             if (strlen($this->cliente_end_cep) > 8)
                 throw new Exception('O CEP do cliente precisa conter no máximo 8 posições numéricas. O arquivo CADASTRO não pode ser escrito!');
 
 
             #08 - X - Bairro (15 posicoes)
             $this->cliente_end_bairro = $valueMESTRE['@ClientAddressSuburb']; //"Félix Açorês";
-    		// se o arquivo foi salvo com o encoding UTF-8 usar a funcao utf8_decode() para decodificar, caso contrario nao havera necessidade do uso da funcao.
-    		//$this->cliente_end_bairro = strtr($this->cliente_end_bairro, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
-    		$this->cliente_end_bairro = strtr($this->cliente_end_bairro, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+            // se o arquivo foi salvo com o encoding UTF-8 usar a funcao utf8_decode() para decodificar, caso contrario nao havera necessidade do uso da funcao.
+            //$this->cliente_end_bairro = strtr($this->cliente_end_bairro, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+            $this->cliente_end_bairro = strtr($this->cliente_end_bairro, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
             if (strlen($this->cliente_end_bairro) >= 15)
-            	$this->cliente_end_bairro = mb_strimwidth($this->cliente_end_bairro, 0, 15);
+                $this->cliente_end_bairro = mb_strimwidth($this->cliente_end_bairro, 0, 15);
             elseif (strlen($this->cliente_end_bairro) < 15)
-            	$this->cliente_end_bairro = str_pad($this->cliente_end_bairro, 15);
+                $this->cliente_end_bairro = str_pad($this->cliente_end_bairro, 15);
             else
-            	$this->cliente_end_bairro = $this->cliente_end_bairro;
+                $this->cliente_end_bairro = $this->cliente_end_bairro;
 
-            if (!ctype_upper($this->cliente_end_bairro)) 
+            if (!ctype_upper($this->cliente_end_bairro))
                 $this->cliente_end_bairro = mb_strtoupper($this->cliente_end_bairro);
 
 
@@ -1761,15 +1715,15 @@ class Nfsc_21
             # Essa consulta precisa ser feita pelo ID da cidade na tabela `tb_cidades` do sistema.
             # Tenha certeza que o charset esta configurado como: Latin1, caso contrario a quebra no charset vai retornar caracteres que nao se encontram na lista abaixo e isso causa erro na validacao do arquivo.
             $this->cliente_end_nome_municipio_ibge = $dados_tb_municipios_ibge['0']['nom_mun'];
-    		// se o arquivo foi salvo com o encoding UTF-8 usar a funcao utf8_decode() para decodificar, caso contrario nao havera necessidade do uso da funcao.
-    		//$this->cliente_end_nome_municipio_ibge = strtr($this->cliente_end_nome_municipio_ibge, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
-    		///////>>>>> $this->cliente_end_nome_municipio_ibge = strtr($this->cliente_end_nome_municipio_ibge, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+            // se o arquivo foi salvo com o encoding UTF-8 usar a funcao utf8_decode() para decodificar, caso contrario nao havera necessidade do uso da funcao.
+            //$this->cliente_end_nome_municipio_ibge = strtr($this->cliente_end_nome_municipio_ibge, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+            ///////>>>>> $this->cliente_end_nome_municipio_ibge = strtr($this->cliente_end_nome_municipio_ibge, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
             if (strlen($this->cliente_end_nome_municipio_ibge) >= 30)
-            	$this->cliente_end_nome_municipio_ibge = mb_strimwidth($this->cliente_end_nome_municipio_ibge, 0, 30);
+                $this->cliente_end_nome_municipio_ibge = mb_strimwidth($this->cliente_end_nome_municipio_ibge, 0, 30);
             elseif (strlen($this->cliente_end_nome_municipio_ibge) < 30)
-            	$this->cliente_end_nome_municipio_ibge = str_pad($this->cliente_end_nome_municipio_ibge, 30);
+                $this->cliente_end_nome_municipio_ibge = str_pad($this->cliente_end_nome_municipio_ibge, 30);
             else
-            	$this->cliente_end_nome_municipio_ibge = $this->cliente_end_nome_municipio_ibge;
+                $this->cliente_end_nome_municipio_ibge = $this->cliente_end_nome_municipio_ibge;
 
             // Nao transformar em maiusculas, pois o valor precisa ser exatamente igual a tabela IBGE ou nao sera validado (testado inumeras vezes)
             ///////>>>>> $this->cliente_end_nome_municipio_ibge = mb_strtoupper($this->cliente_end_nome_municipio_ibge);
@@ -1777,11 +1731,11 @@ class Nfsc_21
 
 
             #10 - X - UF (2 posicoes)
-    	    $this->cliente_uf = $valueMESTRE['@ClientState']; //"SP"; // EX para exterior
-    		if (strlen($this->cliente_uf) == 2)
-    	    	$this->cliente_uf = $this->cliente_uf;
-    	    else
-    	        throw new Exception('O estado(UF) do cliente precisa ser uma sigla e conter exatos 2 caracteres, corrija essa informação no cadastro do cliente no sistema. O arquivo CADASTRO n&atilde;o pode ser escrito!');
+            $this->cliente_uf = $valueMESTRE['@ClientState']; //"SP"; // EX para exterior
+            if (strlen($this->cliente_uf) == 2)
+                $this->cliente_uf = $this->cliente_uf;
+            else
+                throw new Exception('O estado(UF) do cliente precisa ser uma sigla e conter exatos 2 caracteres, corrija essa informação no cadastro do cliente no sistema. O arquivo CADASTRO n&atilde;o pode ser escrito!');
 
 
 
@@ -1798,12 +1752,12 @@ class Nfsc_21
 
 
             #12 - X - Código de identificação do consumidor ou assinante (12 posicoes)
-    	    $this->cliente_cod_assinante = str_pad($valueMESTRE['@ClientID'], 12, " ", STR_PAD_RIGHT);
+            $this->cliente_cod_assinante = str_pad($valueMESTRE['@ClientID'], 12, " ", STR_PAD_RIGHT);
 
 
             #13 - X - numero terminal ou unidade consumidora (12 posicoes)
             // AVISO: ARQUIVO CADASTRO campo 13 - portaria CAT79/2003 diz que o campo deve ser ALFANUMERICO (X) e arquivo de apresentacao da receita diz que o campo tambem precisa ser ALFANUMERICO (X).
-    	    ######### $this->num_terminal_tel_unid_consumidora = str_pad($this->num_terminal_tel_unid_consumidora, 12, " ", STR_PAD_RIGHT);  // estava usando essa linha anteriormente.
+            ######### $this->num_terminal_tel_unid_consumidora = str_pad($this->num_terminal_tel_unid_consumidora, 12, " ", STR_PAD_RIGHT);  // estava usando essa linha anteriormente.
             //"(15) 98787-3434";  // funciona com qualquer combinacao usando os seguintes caracteres sem as aspas: "() .-"
             $this->num_terminal_tel_unid_consumidora = str_replace(' ', '', str_replace('(', '', str_replace(')', '', str_replace('.', '', str_replace('-', '', $valueMESTRE['@ClientPhone1'])))));
             if (strlen($this->num_terminal_tel_unid_consumidora) > 12)
@@ -1816,8 +1770,8 @@ class Nfsc_21
 
 
             #14 - X - UF de habilitação do terminal telefônico (2 posicoes)
-    	    $this->uf_terminal_tel_unid_consumidora = "";
-        	$this->uf_terminal_tel_unid_consumidora = str_pad($this->uf_terminal_tel_unid_consumidora, 2, " ", STR_PAD_RIGHT);
+            $this->uf_terminal_tel_unid_consumidora = "";
+            $this->uf_terminal_tel_unid_consumidora = str_pad($this->uf_terminal_tel_unid_consumidora, 2, " ", STR_PAD_RIGHT);
 
 
             #15 - N - Data de emissão (8 posicoes)
@@ -1837,8 +1791,8 @@ class Nfsc_21
             # IMPORTANTE: O numero da NF do item repete para todos os items do mesmo documento fiscal
             # Ex.: NF 000000001 possui item de numero 001, 002, 003 + LINHA DO "OPTANTE SN - ALÍQUOTA.."
             # Apenas incremente o numero da NF quando for um novo documento fiscal ou seja quando for gravado o ultimo item do doc. fiscal anterior.
-    	    $this->nf_numero +=1;
-        	$this->nf_numero = sprintf('%09d', $this->nf_numero); # 12 9 posicoes    (usado em ambos arquivos MESTRE e ITEM)  Obs.: a numeração deve ser reiniciada a cada período de apuração.
+            $this->nf_numero += 1;
+            $this->nf_numero = sprintf('%09d', $this->nf_numero); # 12 9 posicoes    (usado em ambos arquivos MESTRE e ITEM)  Obs.: a numeração deve ser reiniciada a cada período de apuração.
 
 
             #19 - N - Código do Município (7 posicoes)
@@ -1853,19 +1807,19 @@ class Nfsc_21
             #21 - X - Código de Autenticação Digital do registro (32 posicoes)
             $this->cod_autenticacao_digital_registro = md5(
                 $this->cliente_doc . $this->cliente_ie . $this->cliente_razao_social . $this->cliente_end_logradouro .
-                $this->cliente_end_numero . $this->cliente_end_complemento . $this->cliente_end_cep .
-                $this->cliente_end_bairro . $this->cliente_end_nome_municipio_ibge . $this->cliente_uf .
-                $this->cliente_tel_contato . $this->cliente_cod_assinante . $this->num_terminal_tel_unid_consumidora .
-                $this->uf_terminal_tel_unid_consumidora . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero .
-                $this->codigo_municipio_ibge . $this->brancos_5
+                    $this->cliente_end_numero . $this->cliente_end_complemento . $this->cliente_end_cep .
+                    $this->cliente_end_bairro . $this->cliente_end_nome_municipio_ibge . $this->cliente_uf .
+                    $this->cliente_tel_contato . $this->cliente_cod_assinante . $this->num_terminal_tel_unid_consumidora .
+                    $this->uf_terminal_tel_unid_consumidora . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero .
+                    $this->codigo_municipio_ibge . $this->brancos_5
             );
 
             ################## ################################################################ ################
 
-        	# filename { UF   CNPJ   Modelo   Serie   Ano   Mes   Status   Tipo   Volume(inicia em 001) }
+            # filename { UF   CNPJ   Modelo   Serie   Ano   Mes   Status   Tipo   Volume(inicia em 001) }
             // $this->file_001    = $dados_empresa['0']['estado'] . $cnpj . $this->nf_modelo . $this->nf_serie . date("ym") . 'N01D.001';
             $this->file_001    = $dados_empresa['0']['estado'] . $cnpj . $this->nf_modelo . $this->nf_serie . $data_apuracao . 'N01D.001';
-        	$this->layout_001 .= $this->cliente_doc . $this->cliente_ie . $this->cliente_razao_social . $this->cliente_end_logradouro . $this->cliente_end_numero . $this->cliente_end_complemento . $this->cliente_end_cep . $this->cliente_end_bairro . $this->cliente_end_nome_municipio_ibge . $this->cliente_uf . $this->cliente_tel_contato . $this->cliente_cod_assinante . $this->num_terminal_tel_unid_consumidora . $this->uf_terminal_tel_unid_consumidora . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->codigo_municipio_ibge . $this->brancos_5 . $this->cod_autenticacao_digital_registro . "\r\n"; // acrescidos de CR/LF (Carriage Return/Line Feed) ao final de cada registro;
+            $this->layout_001 .= $this->cliente_doc . $this->cliente_ie . $this->cliente_razao_social . $this->cliente_end_logradouro . $this->cliente_end_numero . $this->cliente_end_complemento . $this->cliente_end_cep . $this->cliente_end_bairro . $this->cliente_end_nome_municipio_ibge . $this->cliente_uf . $this->cliente_tel_contato . $this->cliente_cod_assinante . $this->num_terminal_tel_unid_consumidora . $this->uf_terminal_tel_unid_consumidora . $this->nf_data_emissao . $this->nf_modelo . $this->nf_serie . $this->nf_numero . $this->codigo_municipio_ibge . $this->brancos_5 . $this->cod_autenticacao_digital_registro . "\r\n"; // acrescidos de CR/LF (Carriage Return/Line Feed) ao final de cada registro;
 
 
             # GRAVA DADOS DO ARQUIVO CADASTRO 001 NO BANCO (tabela: `Nfsc_21_Cadastro`) USANDO OS DADOS DO LAYOUT.
@@ -1873,86 +1827,149 @@ class Nfsc_21
             $this->exec('INSERT INTO "' . $table . '" (' . implode(', ', $columns) . ') VALUES (' . implode($values, ', ') . ')');
             */
             $setNfsDadosCadastro[] = [
-                'id'=>NULL, 
-                'documento'=>$this->cliente_doc, 
-                'ie'=>$this->cliente_ie, 
-                'nome_cliente'=>$this->cliente_razao_social, 
-                'logradouro'=>$this->cliente_end_logradouro, 
-                'numero'=>$this->cliente_end_numero, 
-                'complemento'=>$this->cliente_end_complemento, 
-                'cep'=>$this->cliente_end_cep, 
-                'bairro'=>$this->cliente_end_bairro, 
-                'municipio'=>$this->cliente_end_nome_municipio_ibge, 
-                'uf'=>$this->cliente_uf, 
-                'telefone'=>$this->cliente_tel_contato, 
-                'codigo_cliente'=>$this->cliente_cod_assinante, 
-                'terminal_telefonico'=>$this->num_terminal_tel_unid_consumidora, 
-                'uf_terminal_telefonico'=>$this->uf_terminal_tel_unid_consumidora, 
-                'data_emissao'=>$this->nf_data_emissao, 
-                'numero_nf'=>$this->nf_numero, 
-                'modelo'=>$this->nf_modelo, 
-                'codigo_municipio'=>$this->codigo_municipio_ibge, 
-                'brancos_5'=>$this->brancos_5, 
-                'hash_autenticacao_registro'=>$this->cod_autenticacao_digital_registro, 
-                'serie'=>$this->nf_serie, 
+                'id' => NULL,
+                'documento' => $this->cliente_doc,
+                'ie' => $this->cliente_ie,
+                'nome_cliente' => $this->cliente_razao_social,
+                'logradouro' => $this->cliente_end_logradouro,
+                'numero' => $this->cliente_end_numero,
+                'complemento' => $this->cliente_end_complemento,
+                'cep' => $this->cliente_end_cep,
+                'bairro' => $this->cliente_end_bairro,
+                'municipio' => $this->cliente_end_nome_municipio_ibge,
+                'uf' => $this->cliente_uf,
+                'telefone' => $this->cliente_tel_contato,
+                'codigo_cliente' => $this->cliente_cod_assinante,
+                'terminal_telefonico' => $this->num_terminal_tel_unid_consumidora,
+                'uf_terminal_telefonico' => $this->uf_terminal_tel_unid_consumidora,
+                'data_emissao' => $this->nf_data_emissao,
+                'numero_nf' => $this->nf_numero,
+                'modelo' => $this->nf_modelo,
+                'codigo_municipio' => $this->codigo_municipio_ibge,
+                'brancos_5' => $this->brancos_5,
+                'hash_autenticacao_registro' => $this->cod_autenticacao_digital_registro,
+                'serie' => $this->nf_serie,
             ];
-
         } // end foreach
 
         # GRAVA DADOS DO ARQUIVO CADASTRO 001 NO BANCO (tabela: `Nfsc_21_Cadastro`) USANDO OS DADOS DO LAYOUT. (@update: 20190227)
-        if (!empty($setNfsDadosCadastro)) 
-            $setNfsCadastro = $database->insert("Nfsc_21_Cadastro", $setNfsDadosCadastro);
+        // print_r($setNfsDadosCadastro);
+        // print_r($setNfsDadosCadastro);
+        //print_r($teste['logradouro'])
+        //print_r($setNfsDadosCadastro['0']);
+        if (!empty($setNfsDadosCadastro))
 
+            // $setNfsCadastro = $database->insert("Nfsc_21_Cadastro", $setNfsDadosCadastro);
+            $pdo = new PDO("mysql:dbname=mydb;host=localhost", "root","");
+            $sql = $pdo->prepare("INSERT INTO `nfsc_21_cadastro`(`id`, `documento`, `ie`, `nome_cliente`, `logradouro`, `numero`, `complemento`, `cep`, `bairro`, `municipio`, `uf`, `telefone`, `codigo_cliente`, `terminal_telefonico`, `uf_terminal_telefonico`, `data_emissao`, `numero_nf`, `modelo`, `codigo_municipio`, `brancos_5`, `serie`, `hash_autenticacao_registro`)VALUES(null,:documento,:ie,:nome_cliente,:logradouro,:numero,:complmento,:cep,:bairro,:municipio,:uf,:telefone,:codigo_cliente,:terminal_telefonico,:uf_terminal_telefonico,:data_emissao,:numero_nf,:modelo,:codigo_municipio,:brancos_5,:serie,:hash_autenticacao_registro)");
+            $sql->bindValue(":documento", $setNfsDadosCadastro['0']['documento']);
+             $sql->bindValue(":ie", $setNfsDadosCadastro['0']['ie']);
+              $sql->bindValue(":nome_cliente", $setNfsDadosCadastro['0']['nome_cliente']);
+               $sql->bindValue(":logradouro", $setNfsDadosCadastro['0']['logradouro']);
+        $sql->bindValue(":numero", $setNfsDadosCadastro['0']['numero']);
+        $sql->bindValue(":complmento", $setNfsDadosCadastro['0']['complemento']);
+        $sql->bindValue(":cep", $setNfsDadosCadastro['0']['cep']);
+        $sql->bindValue(":bairro", $setNfsDadosCadastro['0']['bairro']);
+        $sql->bindValue(":municipio", $setNfsDadosCadastro['0']['municipio']);
+        $sql->bindValue(":uf", $setNfsDadosCadastro['0']['uf']);
+        $sql->bindValue(":telefone", $setNfsDadosCadastro['0']['telefone']);
+        $sql->bindValue(":codigo_cliente", $setNfsDadosCadastro['0']['codigo_cliente']);
+        $sql->bindValue(":terminal_telefonico", $setNfsDadosCadastro['0']['terminal_telefonico']);
+        $sql->bindValue(":uf_terminal_telefonico", $setNfsDadosCadastro['0']['uf_terminal_telefonico']);
+        $sql->bindValue(":data_emissao", $setNfsDadosCadastro['0']['data_emissao']);
+        $sql->bindValue(":numero_nf", $setNfsDadosCadastro['0']['numero_nf']);
+        $sql->bindValue(":modelo", $setNfsDadosCadastro['0']['modelo']);
+        $sql->bindValue(":codigo_municipio", $setNfsDadosCadastro['0']['codigo_municipio']);
+        $sql->bindValue(":brancos_5", $setNfsDadosCadastro['0']['brancos_5']);
+        $sql->bindValue(":serie", $setNfsDadosCadastro['0']['serie']);
+        $sql->bindValue(":hash_autenticacao_registro", $setNfsDadosCadastro['0']['hash_autenticacao_registro']);
+            $sql->execute();
+           /* $setNfsCadastro = $database->insert("Nfsc_21_Cadastro", [
+                "id" => null,
+                "documento" => $setNfsDadosCadastro['0']['documento'],
+                "ie" => $setNfsDadosCadastro['0']['ie'],
+                "nome_cliente" => $setNfsDadosCadastro['0']['nome_cliente'],
+                "logradouro" => $setNfsDadosCadastro['0']['logradouro'],
+                "numero" => $setNfsDadosCadastro['0']['numero'],
+                'complemento' => $setNfsDadosCadastro['0']['complemento'],
+                "cep" => $setNfsDadosCadastro['0']['cep'],
+                "bairro" => $setNfsDadosCadastro['0']['bairro'],
+                "municipio" => $setNfsDadosCadastro['0']['municipio'],
+                "uf" => $setNfsDadosCadastro['0']['uf'],
+                "telefone" => $setNfsDadosCadastro['0']['telefone'],
+                "codigo_cliente" => $setNfsDadosCadastro['0']['codigo_cliente'],
+                "terminal_telefonico" => $setNfsDadosCadastro['0']['terminal_telefonico'],
+                "uf_terminal_telefonico" => $setNfsDadosCadastro['0']['uf_terminal_telefonico'],
+                "data_emissao" => $setNfsDadosCadastro['0']['data_emissao'],
+                "numero_nf" => $setNfsDadosCadastro['0']['numero_nf'],
+                "modelo" => $setNfsDadosCadastro['0']['modelo'],
+                "codigo_municipio" => $setNfsDadosCadastro['0']['codigo_municipio'],
+                "brancos_5" => $setNfsDadosCadastro['0']['brancos_5'],
+                "serie" => $setNfsDadosCadastro['0']['serie'],
+                "hash_autenticacao_registro" => $setNfsDadosCadastro['0']['hash_autenticacao_registro'],
 
-    	# layout display
-    	//print "<pre>"; print $this->layout_001; print "</pre>";
+            ]);*/
 
-		# GRAVA ARQUIVO CADASTRO 001
-	    if (!@file_put_contents('Files/001/'.$this->file_001, $this->layout_001, LOCK_EX))
-	        throw new Exception('O arquivo <b>'.$this->file_001.'</b> n&atilde;o pode ser escrito!');
-	    else
-        {
-            if (!empty($setNfsDadosCadastro)) 
-            {
+        # layout display
+        //print "<pre>"; print $this->layout_001; print "</pre>";
+
+        # GRAVA ARQUIVO CADASTRO 001
+        if (!@file_put_contents('Files/001/' . $this->file_001, $this->layout_001, LOCK_EX))
+            throw new Exception('O arquivo <b>' . $this->file_001 . '</b> n&atilde;o pode ser escrito!');
+        else {
+            if (!empty($setNfsDadosCadastro)) {
                 // grava nome e data do arquivo que foi gerado na tabela: `Nfsc_21_NF_Regencia`
-                $setNfsCadastroRegencia = $database->insert("Nfsc_21_NF_Regencia", [
-                    "data_gerado" => date('Y-m-d H:i:s'), 
+               /* $setNfsCadastroRegencia = $database->insert("Nfsc_21_NF_Regencia", [
+                    "data_gerado" => date('Y-m-d H:i:s'),
                     "arquivo" => $this->file_001
-                ]);
+                ]);*/
+                $pdo= new PDO("mysql:dbname=mydb;host=localhost", "root", "");
+                $sql = $pdo->prepare("INSERT INTO `nfsc_21_nf_regencia`(`id`, `data_gerado`, `arquivo`) VALUES (null,:da,:arquivo)");
+                $sql->bindValue(":da", date('Y-m-d H:i:s'));
+                $sql->bindvalue(":arquivo", $this->file_001);
+                $sql->execute();
 
                 // gravar NF
                 $ndxcad = 0;
-                foreach ($setNfsDadosCadastro as $sdckey => $sdcval) 
-                {
+                foreach ($setNfsDadosCadastro as $sdckey => $sdcval) {
                     // gravamos aqui as NF dos clientes, nesse caso os arquivos: MESTRE, ITEM e CADASTRO 
                     // ja foram gravados, entao assume-se que nesse momento e seguro gravar as informacoes 
                     // das NF na tabela `Nfsc_21_Notas`.
-                    $setNfsc21Notas = $database->insert("Nfsc_21_Notas", [
-                        "num_nf" => $sdcval['numero_nf'], 
-                        "cliente_id" => $sdcval['codigo_cliente'], 
-                        "cliente_documento" => $cliente_documento[$ndxcad], 
-                        "data_gerada" => date('Y-m-d H:i:s'), 
-                        "data_referente" => $sdcval['data_emissao'], 
-                        "periodo_apuracao" => $data_apuracao, 
-                        "status" => 'criada', 
+                   /* $setNfsc21Notas = $database->insert("Nfsc_21_Notas", [
+                        "num_nf" => $sdcval['numero_nf'],
+                        "cliente_id" => $sdcval['codigo_cliente'],
+                        "cliente_documento" => $cliente_documento[$ndxcad],
+                        "data_gerada" => date('Y-m-d H:i:s'),
+                        "data_referente" => $sdcval['data_emissao'],
+                        "periodo_apuracao" => $data_apuracao,
+                        "status" => 'criada',
                         "criada" => 1
-                    ]);
-                    $ndxcad +=1; // incrementa o index usado para armazenar o documento do cliente na tbl `Nfsc_21_Notas`
+                    ]);*/
+                    $pdo = new PDO("mysql:dbname=mydb;host=localhost", "root", "");
+                    $sql = $pdo->prepare("INSERT INTO `nfsc_21_notas`(`id`, `num_nf`, `cliente_id`, `cliente_documento`, `data_gerada`, `data_referente`, `periodo_apuracao`, `status`, `criada`) VALUES(null,:num_uf,:cliente_id,:cliente_documento,:data_gerada,:data_referente,:periodo_apuracao,:status,:criada)");
+                    $sql->bindValue(":num_uf", $sdcval['numero_nf']);
+                     $sql->bindValue(":cliente_id", $sdcval['codigo_cliente']);
+                    $sql->bindValue(":cliente_documento", $cliente_documento[$ndxcad]);
+                    $sql->bindValue(":data_gerada", date('Y-m-d H:i:s'));
+                    $sql->bindValue(":data_referente", $sdcval['data_emissao']);
+                    $sql->bindValue(":periodo_apuracao", $data_apuracao);
+                    $sql->bindValue(":status",'criada');
+                    $sql->bindValue(":criada",1);
+                    $sql->execute();
+                    $ndxcad += 1; // incrementa o index usado para armazenar o documento do cliente na tbl `Nfsc_21_Notas`
                 }
 
-                return '<pre>O arquivo <b>`'.$this->file_001.'`</b> foi escrito com sucesso!</pre>';
+                return '<pre>O arquivo <b>`' . $this->file_001 . '`</b> foi escrito com sucesso!</pre>';
             }
-
         }
-
     }
 
 
 
     /*******************************************************************************************************************
-    * EXPORTAR DADOS DO DOCUMENTO FISCAL PARA CSV
-    * Exporta todos os dados gerados em array para um arquivo CSV.
-    *
+     * EXPORTAR DADOS DO DOCUMENTO FISCAL PARA CSV
+     * Exporta todos os dados gerados em array para um arquivo CSV.
+     *
         # Alinhamento --- (Gera o arquivo CSV)
         $data .= $numero_nf . ";" .  $data_emissao . ";" . CFOP_NATUREZA_OP . " " . $cfop_descricao . ";" . $pre . $cfop
         . ";" . $cod_cliente . ";" . $nome_cliente . ";" . $logra_cliente . ";" . $num_cliente . ";" . $comp_cliente 
@@ -1962,36 +1979,31 @@ class Nfsc_21
         . ";" . UN_ITEM . ";" . $item1 . ";" . $item2 . ";" . $item3 . ";" . $item4 . ";" . $item5 . ";" . $item6 . ";" . $item7 
         . ";" . $item8 . ";" . $item9 . ";" . $item10 . ";" . $item11 . ";" . $item12 . ";" . $item13 . ";" . $competencia 
         . ";" . $valor_total_nota . ";" . OBS1 . ";" . OBS2 . ";" .OBS3. ";" .OBS4. ";" . SITUACAO_DOC . "\n";
-    *
-    *******************************************************************************************************************/
+     *
+     *******************************************************************************************************************/
     public function ExportCSV($arrayMESTRE, $arrayITEM, $numero_nf, $dtini, $dtfim, $data_apuracao, $data_emissao, $dados_empresa, $csv)
     {
-        if (1 == $csv)
-        {
+        if (1 == $csv) {
             $cnpj = str_replace('.', '', str_replace('/', '', str_replace('-', '', $dados_empresa['0']['cnpj'])));
 
             # Nomear o arquivo CSV (dados do MESTRE)
             $this->file_001 = $dados_empresa['0']['estado'] . $cnpj . $this->nf_modelo . $this->nf_serie . $data_apuracao . 'N01M.001';
-            $fpm = fopen('Files/CSV/'.$this->file_001.'.csv', 'w');
-            foreach ($arrayMESTRE as $mestre) 
-            {
+            $fpm = fopen('Files/CSV/' . $this->file_001 . '.csv', 'w');
+            foreach ($arrayMESTRE as $mestre) {
                 fputcsv($fpm, $mestre);
             }
             fclose($fpm);
 
             # Nomear o arquivo CSV (dados do ITEM)
             $this->file_001 = $dados_empresa['0']['estado'] . $cnpj . $this->nf_modelo . $this->nf_serie . $data_apuracao . date('dH:i:s') . 'N01I.001';
-            $fpi = fopen('Files/CSV/'.$this->file_001.'.csv', 'w');
-            foreach ($arrayITEM as $item) 
-            {
+            $fpi = fopen('Files/CSV/' . $this->file_001 . '.csv', 'w');
+            foreach ($arrayITEM as $item) {
                 fputcsv($fpi, $item);
             }
             fclose($fpi);
 
             return true;
-        }
-        else
-        {
+        } else {
             return false;
         }
     }
@@ -1999,13 +2011,11 @@ class Nfsc_21
 
 
     /*******************************************************************************************************************
-    * Get Property
-    * Obs.: Nao usado
-    *******************************************************************************************************************/
+     * Get Property
+     * Obs.: Nao usado
+     *******************************************************************************************************************/
     public function getProperty()
     {
         return $this->ano_mes_ref_apuracao;
     }
-
 } // end class
-?>

@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set("America/Sao_Paulo");
 /**
  * @title: Sintegra.
  * @description: Sistema Integrado de Informações sobre Operações 
@@ -763,7 +764,7 @@ class Sintegra {
             $this->tipo76 . $this->tipo76total . 
             $this->tipo77 . $this->tipo77total . 
             $this->total_registros . $this->blanks . $this->num_registro_tipo90;
-            // "\r\n"; // essa propriedade recebe dados dos tipos de registros. >>> PHP_EOL nao funciona no windows (programa sintegra) <<<
+            // "\r\n"; // essa propriedade recebe dados dos tipos de registros. >>> PHP_EOL nao funciona no windows (programa sintegra) <<<br
 
 
 
@@ -772,10 +773,16 @@ class Sintegra {
         /**
          * Gravar arquivo sintegra
          */
-        $this->file_sintegra = $this->empresa_cnpj . '-' . $this->nf_data_recebimento_emissao . date('YmdH:i:s') . '-Sintegra.txt';
+        $horario_gravado = date("YmdHis");
+        echo "</br>$horario_gravado</br>";
+        $this->file_sintegra = $this->empresa_cnpj . '-' . $this->nf_data_recebimento_emissao . date('YmdHis') . '-Sintegra.txt';
         $this->layout_sintegra .= '' . "\r\n"; // essa propriedade recebe dados dos tipos de registros.
-        
-        
+      /*  echo "</br>";
+        echo "/Files/Sintegra/" . $this->file_sintegra;
+        echo "</br>";
+        echo $this->layout_sintegra;
+        echo "</br>";
+        echo LOCK_EX;*/
 	    if (!@file_put_contents('Files/Sintegra/'.$this->file_sintegra, $this->layout_sintegra, LOCK_EX))
 	        throw new Exception('O arquivo '.$this->file_sintegra.' n&atilde;o pode ser escrito!');
 	    else 
@@ -796,13 +803,16 @@ class Sintegra {
              * atualizar o status da nota para `gerada`
              * UPDATE `Nfsc_21_Notas` SET `status` = 'gerada' WHERE `Nfsc_21_Notas`.`id` = $_GET['tblnotasid'];
              */
+            
             foreach ($num_nf_arr as $nfk => $nfv) {
                 $database->update("Nfsc_21_Notas", [
                     "status" => "gerada",
                     "gerada" => 1
                 ], [
+                    
                     "id[=]" => $nfv
                 ]);
+               // echo $nfv;
             }
 
             /**

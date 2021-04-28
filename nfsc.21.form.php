@@ -1,3 +1,6 @@
+<?php
+  date_default_timezone_set("America/Sao_Paulo");
+?>
 <html>
 <head>
     <meta charset="utf-8">
@@ -49,8 +52,9 @@
 
 
     <!-- form -->
-    <form name="form1" action="nfsc.21.query.select.data.php" method="get">
-
+    
+   <!-- <form name="form1" action="nfsc.21.query.select.data.php" method="get">-->
+<form name="form1" action="nfsc.21.array.php" method="GET">
         <?php // precisa buscar apenas os clientes que nao tiveram NF emitidas ainda ?>
         <?php
         require 'config.php'; 

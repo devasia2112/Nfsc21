@@ -178,7 +178,7 @@ class medoo
 			}
 		}
 
-		return implode($stack, ',');
+		return implode(',',$stack);
 	}
 
 	protected function array_quote($array)
@@ -683,8 +683,14 @@ class medoo
 				}
 			}
 
-			$this->exec('INSERT INTO "' . $table . '" (' . implode(', ', $columns) . ') VALUES (' . implode($values, ', ') . ')');
-
+			//$this->exec('INSERT INTO "' . $table . '" (' . implode(', ', $columns) . ') VALUES (' . implode($values, ', ') . ')');
+			//$this->exec('INSERT INTO "' .$table . '"(' . implode(',',$columns) . ')VALUES('. implode(','$values) . ')');
+			$coluna = implode(",",$columns);
+			$valores = implode(",",$values);
+			//echo "";
+			//echo "INSERT INTO $table ($coluna) VALUES($valores)";
+			$this->exec("INSERT INTO $table ($coluna) VALUES($valores)");
+			
 			$lastId[] = $this->pdo->lastInsertId();
 		}
 

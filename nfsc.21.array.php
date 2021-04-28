@@ -9,9 +9,10 @@
  * @Notes:
  *
  */
+date_default_timezone_set("America/Sao_Paulo");
 include "config.php";
-include "nfsc.21.class.php";
-
+include "class/nfsc.21.class.php";
+include "class/nfsc.21.sintegra.php";
 
 /***************************************************************************************************
  * variaveis em comum
@@ -22,7 +23,10 @@ $nf_numero     = $_GET['nf'];       # 0;             # inicia em ZERO como defau
 $nf_ref_item   = $_GET['ri'];       # 1;
 $data_apuracao = $_GET['da'];       # 1701;          #date("ym");       # formato "AAMM"
 $data_emissao  = $_GET['de'];       # 20170120;      #date("Ymd");      # formato AAAAMMDD
+$modelo          = $_GET['mo'];  # modelo (21 ou 22) modelo 06 - Energia Eletrica ainda nao foi implementado.
+$tipo_utilizacao = $_GET['tu'];
 $nfsc          = new Nfsc_21;
+$sintegra = new Sintegra();
 
 
 /***************************************************************************************************
@@ -73,7 +77,7 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
     // MESTRE (usar o mesmo array para o arquivo CADASTRO)
     $r_mestre = array();
     $r_mestre = array(
-            "0" => array
+           /* "0" => array
                 (
                     "@ClientID" => 22222,
                     "0" => 22222,
@@ -111,8 +115,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                     "16" => "Super Plano Banda Larga IV",
                     "@PlanAmount" => 280.90,
                     "17" => 280.90,
-                    "@CityName" => "São Paulo",
-                    "18" => "São Paulo",
+                    "@CityName" => "Sï¿½o Paulo",
+                    "18" => "Sï¿½o Paulo",
                     "@InvoiceID" => 707442,
                     "19" => 707442,
                     "@InvoiceDueDate" => "2017-01-15",
@@ -133,9 +137,9 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                     "27" => 280.90,
                     "@CfopCode" => 307,
                     "28" => 307,
-                    "@CfopDescription" => "Não contribuinte",
-                    "29" => "Não contribuinte",
-                ),
+                    "@CfopDescription" => "Nï¿½o contribuinte",
+                    "29" => "Nï¿½o contribuinte",
+                ),*/
                 "1" => array
                     (
                         "@ClientID" => 11111,
@@ -174,8 +178,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                         "16" => "Super Plano Banda Larga I",
                         "@PlanAmount" => 249.75,
                         "17" => 249.75,
-                        "@CityName" => "São Paulo",
-                        "18" => "São Paulo",
+                        "@CityName" => "Sï¿½o Paulo",
+                        "18" => "Sï¿½o Paulo",
                         "@InvoiceID" => 70742,
                         "19" => 70742,
                         "@InvoiceDueDate" => "2017-01-15",
@@ -196,8 +200,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                         "27" => 249.75,
                         "@CfopCode" => 307,
                         "28" => 307,
-                        "@CfopDescription" => "Não contribuinte",
-                        "29" => "Não contribuinte",
+                        "@CfopDescription" => "Nï¿½o contribuinte",
+                        "29" => "Nï¿½o contribuinte",
                     )
 
     );
@@ -222,7 +226,7 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
 
     try
     {
-        $response_mestre = $nfsc->Mestre($r_mestre, $r_total_itens_nf, $nf_numero=0, $nf_ref_item, $data_apuracao, $data_emissao, $r_empresa);
+        $response_mestre = $nfsc->Mestre($r_mestre, $r_total_itens_nf, $nf_numero=0, $nf_ref_item, $data_apuracao, $data_emissao, $r_empresa,$modelo,$tipo_utilizacao,$database);
         echo $response_mestre['0']['msg']; // display return message
     }
     catch (Exception $e)
@@ -279,8 +283,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                 "18" => 15000,
                 "@PlanUpload" => 5000,
                 "19" => 5000,
-                "@CityName" => "São Paulo",
-                "20" => "São Paulo",
+                "@CityName" => "Sï¿½o Paulo",
+                "20" => "Sï¿½o Paulo",
                 "@InvoiceID" => 76348,
                 "21" => 76348,
                 "@InvoiceDueDate" => "2017-01-15",
@@ -299,8 +303,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                 "28" => "parcela",
                 "@CfopCode" => 307,
                 "29" => 307,
-                "@CfopDescription" => "Não contribuinte",
-                "30" => "Não contribuinte"
+                "@CfopDescription" => "Nï¿½o contribuinte",
+                "30" => "Nï¿½o contribuinte"
             ),
         "1" => array
             (
@@ -344,8 +348,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                 "18" => 15000,
                 "@PlanUpload" => 5000,
                 "19" => 5000,
-                "@CityName" => "São Paulo",
-                "20" => "São Paulo",
+                "@CityName" => "Sï¿½o Paulo",
+                "20" => "Sï¿½o Paulo",
                 "@InvoiceID" => 76348,
                 "21" => 76348,
                 "@InvoiceDueDate" => "2017-01-15",
@@ -364,8 +368,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                 "28" => "parcela",
                 "@CfopCode" => 307,
                 "29" => 307,
-                "@CfopDescription" => "Não contribuinte",
-                "30" => "Não contribuinte"
+                "@CfopDescription" => "Nï¿½o contribuinte",
+                "30" => "Nï¿½o contribuinte"
             ),
             "2" => array
                 (
@@ -409,8 +413,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                     "18" => 15000,
                     "@PlanUpload" => 5000,
                     "19" => 5000,
-                    "@CityName" => "São Paulo",
-                    "20" => "São Paulo",
+                    "@CityName" => "Sï¿½o Paulo",
+                    "20" => "Sï¿½o Paulo",
                     "@InvoiceID" => 85790,
                     "21" => 85790,
                     "@InvoiceDueDate" => "2017-01-15",
@@ -429,8 +433,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                     "28" => "parcela",
                     "@CfopCode" => 307,
                     "29" => 307,
-                    "@CfopDescription" => "Não contribuinte",
-                    "30" => "Não contribuinte"
+                    "@CfopDescription" => "Nï¿½o contribuinte",
+                    "30" => "Nï¿½o contribuinte"
                 ),
                 "3" => array
                     (
@@ -474,8 +478,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                         "18" => 15000,
                         "@PlanUpload" => 5000,
                         "19" => 5000,
-                        "@CityName" => "São Paulo",
-                        "20" => "São Paulo",
+                        "@CityName" => "Sï¿½o Paulo",
+                        "20" => "Sï¿½o Paulo",
                         "@InvoiceID" => 85790,
                         "21" => 85790,
                         "@InvoiceDueDate" => "2017-01-15",
@@ -494,8 +498,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                         "28" => "parcela",
                         "@CfopCode" => 307,
                         "29" => 307,
-                        "@CfopDescription" => "Não contribuinte",
-                        "30" => "Não contribuinte"
+                        "@CfopDescription" => "Nï¿½o contribuinte",
+                        "30" => "Nï¿½o contribuinte"
                     ),
                     "4" => array
                         (
@@ -539,8 +543,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                             "18" => 15000,
                             "@PlanUpload" => 5000,
                             "19" => 5000,
-                            "@CityName" => "São Paulo",
-                            "20" => "São Paulo",
+                            "@CityName" => "Sï¿½o Paulo",
+                            "20" => "Sï¿½o Paulo",
                             "@InvoiceID" => 85790,
                             "21" => 85790,
                             "@InvoiceDueDate" => "2017-01-15",
@@ -559,8 +563,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                             "28" => "parcela",
                             "@CfopCode" => 307,
                             "29" => 307,
-                            "@CfopDescription" => "Não contribuinte",
-                            "30" => "Não contribuinte"
+                            "@CfopDescription" => "Nï¿½o contribuinte",
+                            "30" => "Nï¿½o contribuinte"
                         ),
                         "5" => array
                             (
@@ -604,8 +608,8 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                                 "18" => 15000,
                                 "@PlanUpload" => 5000,
                                 "19" => 5000,
-                                "@CityName" => "São Paulo",
-                                "20" => "São Paulo",
+                                "@CityName" => "Sï¿½o Paulo",
+                                "20" => "Sï¿½o Paulo",
                                 "@InvoiceID" => 85790,
                                 "21" => 85790,
                                 "@InvoiceDueDate" => "2017-01-15",
@@ -624,17 +628,37 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
                                 "28" => "parcela",
                                 "@CfopCode" => 307,
                                 "29" => 307,
-                                "@CfopDescription" => "Não contribuinte",
-                                "30" => "Não contribuinte"
+                                "@CfopDescription" => "Nï¿½o contribuinte",
+                                "30" => "Nï¿½o contribuinte"
                             )
 
     );
     //print "<pre>ITEM "; print_r($r_item);
-
+    $dados_empresa = $database->select("Test_Empresa", "*", array("id[=]" => 1));
+    // se estiver vazio setamos manualmente essa informacao
+    if (empty($dados_empresa)) {
+        $dados_empresa['0']['cnpj'] = '99.999.999/0001-99';
+        $dados_empresa['0']['ie'] = '999999999'; // formato ex.: 'ISENTO' ou 012.345.678 ou 123456789
+        $dados_empresa['0']['razao_social'] = 'PROVEDOR X LTDA ME';
+        $dados_empresa['0']['cidade'] = 'CURITIBA';
+        $dados_empresa['0']['estado'] = 'PR';
+        $dados_empresa['0']['fax'] = '(41) 9999-9999';
+        $dados_empresa['0']['cod_id_convenio'] = '3'; // ou cod_arquivo_magnetico_entregue ??
+        $dados_empresa['0']['cod_natureza_op_informada'] = '3';
+        $dados_empresa['0']['cod_finalidade_arquivo_magnetico'] = '1';
+        // dados complementares para o registro 11
+        $dados_empresa['0']['logradouro'] = 'RUA CENTRAL';
+        $dados_empresa['0']['numero'] = '999';
+        $dados_empresa['0']['complemento'] = 'SALA 99';
+        $dados_empresa['0']['bairro'] = 'CENTRO';
+        $dados_empresa['0']['cep'] = '99999-999';
+        $dados_empresa['0']['nome_contato'] = 'BOB WILSON';
+        $dados_empresa['0']['empresa_telefone'] = '(99) 9999-9999';
+    }
     try
     {
         // Esse metodo recebe o array $response_mestre como parametro, esse array contem o valor total dos item do documento fiscal.
-        echo $nfsc->Item($response_mestre, $r_item, $nf_numero=1, $nf_ref_item, $data_apuracao, $data_emissao, $r_empresa);
+        echo $nfsc->Item($response_mestre, $r_item, $nf_numero=1, $nf_ref_item, $data_apuracao, $data_emissao, $dados_empresa,$modelo,$tipo_utilizacao,$database);
     }
     catch (Exception $e)
     {
@@ -650,12 +674,30 @@ if (checkdate($expdi[1] , $expdi[2] , $expdi[0]) == 1 and checkdate($expdf[1] , 
      ***************************************************************************************************/
      try
      {
-         echo $nfsc->Cadastro($r_mestre, $nf_numero=0, $nf_ref_item, $data_apuracao, $data_emissao, $r_empresa, $database);
+         echo $nfsc->Cadastro($r_mestre, $nf_numero=0, $nf_ref_item, $data_apuracao, $data_emissao, $dados_empresa,$modelo,$tipo_utilizacao ,$database);
      }
      catch (Exception $e)
      {
          echo "<pre><b>Caught exception:</b> ",  $e->getMessage(), "\n</pre>";
      }
+
+    try {
+        // PHP trata NULL, false, 0 e string vazio como sendo a mesma coisa.
+        //if ($arrayITEM !== NULL)
+        echo "Sucesso gerou";
+        echo @$nfsc->ExportCSV($r_mestre, $r_item, $nf_numero=0, $dtini, $dtfim, $data_apuracao, $data_emissao, $dados_empresa, $csv);
+    } catch (Exception $e) {
+        echo "<pre><b>Caught exception:</b> ",  $e->getMessage(), "\n</pre>";
+    }
+    try {
+        // PHP trata NULL, false, 0 e string vazio como sendo a mesma coisa.
+        //if ($arrayITEM !== NULL)
+        echo "</br>Sucesso gerou arquivo sintegra";
+        echo $sintegra->gerarArquivo($r_mestre, $r_item,$dtini,$dtfim,$data_apuracao,$data_emissao, $dados_empresa,$modelo,$tipo_utilizacao,$database);
+        /*echo @$nfsc->ExportCSV($r_mestre, $r_item, $nf_numero = 0, $dtini, $dtfim, $data_apuracao, $data_emissao, $r_empresa, $csv);*/
+    } catch (Exception $e) {
+        echo "<pre><b>Caught exception:</b> ",  $e->getMessage(), "\n</pre>";
+    }
 
 
 
